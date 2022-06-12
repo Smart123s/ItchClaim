@@ -25,8 +25,9 @@ import os
 import ItchContext
 
 def main():
-    context = ItchContext.ItchContext()
-    context.login(os.environ['uname'], os.environ['passwd'], totp=os.environ['totp'])
+    context = ItchContext.ItchContext(os.environ['uname'])
+    context.load_session()
+    # context.login(os.environ['passwd'], totp=os.environ['totp'])
 
 if __name__=="__main__":
     main()
