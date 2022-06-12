@@ -1,0 +1,1 @@
+### Automatically claim free games from itch.io
