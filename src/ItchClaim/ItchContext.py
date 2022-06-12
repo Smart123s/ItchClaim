@@ -20,13 +20,32 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import os
+import requests, urllib, pyotp
+from typing import Optional
+from bs4 import BeautifulSoup
 
-import ItchContext
 
-def main():
-    context = ItchContext.ItchContext()
-    context.login(os.environ['uname'], os.environ['passwd'], totp=os.environ['totp'])
+class ItchContext:
+    def __init__(self):
+        self._s = requests.Session()
 
-if __name__=="__main__":
-    main()
+    def login(self, username: str, password: str, totp: Optional[str]):
+        self._s.get('https://itch.io/login')
+        self.csrf_token = urllib.parse.unquote(self._s.cookies['itchio_token'])
+
+        data = {
+            'csrf_token': self.csrf_token,
+            'tz': -120,
+            'username': username,
+            'password': password,
+        }
+        r = self._s.post('https://itch.io/login', params=data)
+
+        if r.url.find('totp/') != -1:
+            soup = BeautifulSoup(r.text, 'html.parser')
+            data = {
+                'csrf_token': self.csrf_token,
+                'userid': soup.find_all(attrs={"name": "user_id"})[0]['value'],
+                'code': int(pyotp.TOTP(totp).now()),
+            }
+            r = self._s.post(r.url, params=data)
