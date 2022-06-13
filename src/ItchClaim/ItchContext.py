@@ -32,7 +32,7 @@ class ItchContext:
 
     def login(self, password: str, totp: Optional[str]):
         self._s.get('https://itch.io/login')
-        self.csrf_token = urllib.parse.unquote(self._s.cookies['itchio_token'])
+        self.update_csrf()
 
         data = {
             'csrf_token': self.csrf_token,
@@ -65,7 +65,8 @@ class ItchContext:
     def load_session(self):
         with open(self.get_default_session_filename(), 'r') as f:
             data = json.load(f)
-        self._s.cookies.set('itchio_token', data['csrf_token'], domain='.itch.io')
+        self.csrf_token = data['csrf_token']
+        self._s.cookies.set('itchio_token', self.csrf_token, domain='.itch.io')
         self._s.cookies.set('itchio', data['itchio'], domain='.itch.io')
 
     # Source: https://github.com/instaloader/instaloader/blob/853e8603/instaloader/instaloader.py#L42-L46
@@ -74,6 +75,24 @@ class ItchContext:
         configdir = _get_config_dir()
         sessionfilename = "session-{}.json".format(self.username)
         return os.path.join(configdir, sessionfilename)
+
+    def claim_game(self, url: str):
+        r = self._s.post(url + '/download_url', json={'csrf_token': self.csrf_token})
+        download_url = json.loads(r.text)['url']
+        r = self._s.get(download_url)
+        soup = BeautifulSoup(r.text, 'html.parser')
+        claim_url = soup.find('div', class_='claim_to_download_box warning_box').find('form')['action']
+        r = self._s.post(claim_url, 
+                        data={'csrf_token': self.csrf_token}, 
+                        headers={ 'Content-Type': 'application/x-www-form-urlencoded'}
+                        )
+        print(r.url)
+        # Success: https://dankoff.itch.io/sci-fi-wepon-pack/download/7LPhDDllv1SB__g9KhRzRS36Y7nF4Uefi2CbEKjS
+        # Fail: https://itch.io/
+
+
+    def update_csrf(self):
+        self.csrf_token = urllib.parse.unquote(self._s.cookies['itchio_token'])
 
 # Source: https://github.com/instaloader/instaloader/blob/853e8603/instaloader/instaloader.py#L30-L39
 def _get_config_dir() -> str:
