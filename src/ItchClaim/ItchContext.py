@@ -90,9 +90,16 @@ class ItchContext:
         # Success: https://dankoff.itch.io/sci-fi-wepon-pack/download/7LPhDDllv1SB__g9KhRzRS36Y7nF4Uefi2CbEKjS
         # Fail: https://itch.io/
 
-
     def update_csrf(self):
         self.csrf_token = urllib.parse.unquote(self._s.cookies['itchio_token'])
+
+    @staticmethod
+    def get_sale_list(page: int):
+        r = requests.get(f"https://itch.io/games/on-sale?page={page}&format=json")
+        html = json.loads(r.text)['content']
+        soup = BeautifulSoup(html, 'html.parser')
+        games_raw = soup.find_all('div', class_="game_cell")
+        print()
 
 # Source: https://github.com/instaloader/instaloader/blob/853e8603/instaloader/instaloader.py#L30-L39
 def _get_config_dir() -> str:

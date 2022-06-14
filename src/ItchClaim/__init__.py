@@ -28,7 +28,10 @@ def main():
     context = ItchContext.ItchContext(os.environ['uname'])
     context.load_session()
     # context.login(os.environ['passwd'], totp=os.environ['totp'])
-    context.claim_game('https://dankoff.itch.io/sci-fi-wepon-pack')
+    # context.claim_game('https://dankoff.itch.io/sci-fi-wepon-pack')
+
+    context.get_sale_list(0)
+
     context.save_session()
 if __name__=="__main__":
     main()
