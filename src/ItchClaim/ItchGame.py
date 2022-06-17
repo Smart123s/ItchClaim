@@ -37,13 +37,9 @@ class ItchGame:
             self.price = float(price_element.text[1:])
         else:
             self.price = -1
-            self.claimable = False
             return
 
         #self.sale_percent (sometimes it's 50%, sometimes it's "In bundle")
-
-        #TODO: Implement claimable check
-        self.claimable = True
 
     def claim_game(self, user: ItchUser):
         r = user.s.post(self.url + '/download_url', json={'csrf_token': user.csrf_token})
@@ -68,7 +64,7 @@ class ItchGame:
         games = []
         for div in games_raw:
             game_parsed = ItchGame(div)
-            if game_parsed.price == 0 & game_parsed.claimable:
+            if game_parsed.price == 0:
                 games.append(game_parsed)
         return games
 
