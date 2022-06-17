@@ -41,7 +41,8 @@ def main():
         print (f'Sale page #{i+1}: added {len(page)} games (total: {len(games_list)})')
 
     print('\nClaiming games')
-    games_list[1].claim_game(user)
+    for game in games_list:
+        game.claim_game(user)
 
     user.save_session()
 if __name__=="__main__":
