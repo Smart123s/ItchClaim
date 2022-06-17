@@ -32,6 +32,8 @@ def main():
 
     games_list = ItchGame.get_sale_page(0)
 
+    games_list[1].claim_game(user)
+
     user.save_session()
 if __name__=="__main__":
     main()

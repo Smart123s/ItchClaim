@@ -46,7 +46,11 @@ class ItchGame:
         download_url = json.loads(r.text)['url']
         r = user.s.get(download_url)
         soup = BeautifulSoup(r.text, 'html.parser')
-        claim_url = soup.find('div', class_='claim_to_download_box warning_box').find('form')['action']
+        claim_box = soup.find('div', class_='claim_to_download_box warning_box')
+        if claim_box == None:
+            print(f"Game {self.name} is either not claimable or already owned (url: {self.url})")
+            return
+        claim_url = claim_box.find('form')['action']
         r = user.s.post(claim_url, 
                         data={'csrf_token': user.csrf_token}, 
                         headers={ 'Content-Type': 'application/x-www-form-urlencoded'}
