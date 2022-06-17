@@ -30,8 +30,17 @@ def main():
     # user.login(os.environ['passwd'], totp=os.environ['totp'])
     # user.claim_game('https://dankoff.itch.io/sci-fi-wepon-pack')
 
-    games_list = ItchGame.get_sale_page(0)
+    print('Downloading game sales pages.')
+    games_list = []
+    
+    for i in range(int(1e18)):
+        page = ItchGame.get_sale_page(i)
+        if len(page) == 0:
+            break
+        games_list.extend(page)
+        print (f'Sale page #{i+1}: added {len(page)} games (total: {len(games_list)})')
 
+    print('\nClaiming games')
     games_list[1].claim_game(user)
 
     user.save_session()
