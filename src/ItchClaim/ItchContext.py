@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import requests, urllib, pyotp, os, platform, tempfile, json, getpass, ItchGame
+import requests, urllib, pyotp, os, platform, tempfile, json, getpass
 from typing import Optional
 from bs4 import BeautifulSoup
 
@@ -75,39 +75,8 @@ class ItchContext:
         sessionfilename = "session-{}.json".format(self.username)
         return os.path.join(configdir, sessionfilename)
 
-    def claim_game(self, url: str):
-        r = self._s.post(url + '/download_url', json={'csrf_token': self.csrf_token})
-        download_url = json.loads(r.text)['url']
-        r = self._s.get(download_url)
-        soup = BeautifulSoup(r.text, 'html.parser')
-        claim_url = soup.find('div', class_='claim_to_download_box warning_box').find('form')['action']
-        r = self._s.post(claim_url, 
-                        data={'csrf_token': self.csrf_token}, 
-                        headers={ 'Content-Type': 'application/x-www-form-urlencoded'}
-                        )
-        print(r.url)
-        # Success: https://dankoff.itch.io/sci-fi-wepon-pack/download/7LPhDDllv1SB__g9KhRzRS36Y7nF4Uefi2CbEKjS
-        # Fail: https://itch.io/
-
     def update_csrf(self):
         self.csrf_token = urllib.parse.unquote(self._s.cookies['itchio_token'])
-
-    @staticmethod
-    def get_sale_page(page: int):
-        r = requests.get(f"https://itch.io/games/on-sale?page={page}&format=json")
-        html = json.loads(r.text)['content']
-        soup = BeautifulSoup(html, 'html.parser')
-        games_raw = soup.find_all('div', class_="game_cell")
-        games = []
-        for div in games_raw:
-            game_parsed = ItchGame.ItchGame(div)
-            if game_parsed.price == 0 & game_parsed.claimable:
-                games.append(game_parsed)
-        return games
-
-    @staticmethod
-    def get_all_sales():
-        pass
 
 # Source: https://github.com/instaloader/instaloader/blob/853e8603/instaloader/instaloader.py#L30-L39
 def _get_config_dir() -> str:

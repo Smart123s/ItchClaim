@@ -21,7 +21,8 @@
 # SOFTWARE.
 
 import os
-import ItchContext, ItchGame
+import ItchContext
+from ItchGame import ItchGame
 
 def main():
     context = ItchContext.ItchContext(os.environ['uname'])
@@ -29,7 +30,7 @@ def main():
     # context.login(os.environ['passwd'], totp=os.environ['totp'])
     # context.claim_game('https://dankoff.itch.io/sci-fi-wepon-pack')
 
-    games_list = context.get_sale_page(0)
+    games_list = ItchGame.get_sale_page(0)
 
     context.save_session()
 if __name__=="__main__":

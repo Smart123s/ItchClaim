@@ -20,7 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import json, requests
 from bs4.element import Tag
+from bs4 import BeautifulSoup
+from ItchContext import ItchContext
 
 class ItchGame:
     def __init__(self, div: Tag):
@@ -41,3 +44,34 @@ class ItchGame:
 
         #TODO: Implement claimable check
         self.claimable = True
+
+    def claim_game(self, context: ItchContext):
+        r = context.s.post(context.url + '/download_url', json={'csrf_token': context.csrf_token})
+        download_url = json.loads(r.text)['url']
+        r = context.s.get(download_url)
+        soup = BeautifulSoup(r.text, 'html.parser')
+        claim_url = soup.find('div', class_='claim_to_download_box warning_box').find('form')['action']
+        r = context.s.post(claim_url, 
+                        data={'csrf_token': context.csrf_token}, 
+                        headers={ 'Content-Type': 'application/x-www-form-urlencoded'}
+                        )
+        print(r.url)
+        # Success: https://dankoff.itch.io/sci-fi-wepon-pack/download/7LPhDDllv1SB__g9KhRzRS36Y7nF4Uefi2CbEKjS
+        # Fail: https://itch.io/
+
+    @staticmethod
+    def get_sale_page(page: int):
+        r = requests.get(f"https://itch.io/games/on-sale?page={page}&format=json")
+        html = json.loads(r.text)['content']
+        soup = BeautifulSoup(html, 'html.parser')
+        games_raw = soup.find_all('div', class_="game_cell")
+        games = []
+        for div in games_raw:
+            game_parsed = ItchGame(div)
+            if game_parsed.price == 0 & game_parsed.claimable:
+                games.append(game_parsed)
+        return games
+
+    @staticmethod
+    def get_all_sales():
+        pass
