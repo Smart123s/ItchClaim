@@ -20,10 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import requests, urllib, pyotp, os, platform, tempfile, json, getpass
+import requests, urllib, pyotp, os, platform, tempfile, json, getpass, ItchGame
 from typing import Optional
 from bs4 import BeautifulSoup
-
 
 class ItchContext:
     def __init__(self, username):
@@ -94,12 +93,21 @@ class ItchContext:
         self.csrf_token = urllib.parse.unquote(self._s.cookies['itchio_token'])
 
     @staticmethod
-    def get_sale_list(page: int):
+    def get_sale_page(page: int):
         r = requests.get(f"https://itch.io/games/on-sale?page={page}&format=json")
         html = json.loads(r.text)['content']
         soup = BeautifulSoup(html, 'html.parser')
         games_raw = soup.find_all('div', class_="game_cell")
-        print()
+        games = []
+        for div in games_raw:
+            game_parsed = ItchGame.ItchGame(div)
+            if game_parsed.price == 0 & game_parsed.claimable:
+                games.append(game_parsed)
+        return games
+
+    @staticmethod
+    def get_all_sales():
+        pass
 
 # Source: https://github.com/instaloader/instaloader/blob/853e8603/instaloader/instaloader.py#L30-L39
 def _get_config_dir() -> str:
