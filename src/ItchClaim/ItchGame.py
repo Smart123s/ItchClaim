@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import json, requests
+import json, requests, re
 from bs4.element import Tag
 from bs4 import BeautifulSoup
 from ItchUser import ItchUser
@@ -34,7 +34,8 @@ class ItchGame:
         price_element = div.find('div', attrs={'class': 'price_value'})
         # Some elements don't have a price defined
         if price_element != None:
-            self.price = float(price_element.text[1:])
+            price_str = re.findall("[-+]?(?:\d*\.\d+|\d+)", price_element.text)[0]
+            self.price = float(price_str)
         else:
             self.price = -1
             return
