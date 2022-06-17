@@ -56,9 +56,10 @@ class ItchGame:
                         data={'csrf_token': user.csrf_token}, 
                         headers={ 'Content-Type': 'application/x-www-form-urlencoded'}
                         )
-        print(r.url)
-        # Success: https://dankoff.itch.io/sci-fi-wepon-pack/download/7LPhDDllv1SB__g9KhRzRS36Y7nF4Uefi2CbEKjS
-        # Fail: https://itch.io/
+        if r.url == 'https://itch.io/':
+            print(f"ERROR: Failed to claim game {self.name} (url: {self.url})")
+        else:
+            print(f"Successfully claimed game {self.name} (url: {self.url})")
 
     @staticmethod
     def get_sale_page(page: int):
