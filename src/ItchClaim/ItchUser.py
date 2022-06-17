@@ -24,13 +24,13 @@ import requests, urllib, pyotp, os, platform, tempfile, json, getpass
 from typing import Optional
 from bs4 import BeautifulSoup
 
-class ItchContext:
+class ItchUser:
     def __init__(self, username):
-        self._s = requests.Session()
+        self.s = requests.Session()
         self.username = username
 
     def login(self, password: str, totp: Optional[str]):
-        self._s.get('https://itch.io/login')
+        self.s.get('https://itch.io/login')
         self.update_csrf()
 
         data = {
@@ -39,7 +39,7 @@ class ItchContext:
             'username': self.username,
             'password': password,
         }
-        r = self._s.post('https://itch.io/login', params=data)
+        r = self.s.post('https://itch.io/login', params=data)
 
         if r.url.find('totp/') != -1:
             soup = BeautifulSoup(r.text, 'html.parser')
@@ -48,7 +48,7 @@ class ItchContext:
                 'userid': soup.find_all(attrs={"name": "user_id"})[0]['value'],
                 'code': int(pyotp.TOTP(totp).now()),
             }
-            r = self._s.post(r.url, params=data)
+            r = self.s.post(r.url, params=data)
 
         self.save_session()
 
@@ -56,7 +56,7 @@ class ItchContext:
         os.makedirs(_get_config_dir(), exist_ok=True)
         data = {
             'csrf_token': self.csrf_token,
-            'itchio': self._s.cookies['itchio']
+            'itchio': self.s.cookies['itchio']
         }
         with open(self.get_default_session_filename(), 'w') as f:
             f.write(json.dumps(data))
@@ -65,8 +65,8 @@ class ItchContext:
         with open(self.get_default_session_filename(), 'r') as f:
             data = json.load(f)
         self.csrf_token = data['csrf_token']
-        self._s.cookies.set('itchio_token', self.csrf_token, domain='.itch.io')
-        self._s.cookies.set('itchio', data['itchio'], domain='.itch.io')
+        self.s.cookies.set('itchio_token', self.csrf_token, domain='.itch.io')
+        self.s.cookies.set('itchio', data['itchio'], domain='.itch.io')
 
     # Source: https://github.com/instaloader/instaloader/blob/853e8603/instaloader/instaloader.py#L42-L46
     def get_default_session_filename(self) -> str:
@@ -76,7 +76,7 @@ class ItchContext:
         return os.path.join(configdir, sessionfilename)
 
     def update_csrf(self):
-        self.csrf_token = urllib.parse.unquote(self._s.cookies['itchio_token'])
+        self.csrf_token = urllib.parse.unquote(self.s.cookies['itchio_token'])
 
 # Source: https://github.com/instaloader/instaloader/blob/853e8603/instaloader/instaloader.py#L30-L39
 def _get_config_dir() -> str:

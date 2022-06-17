@@ -23,7 +23,7 @@
 import json, requests
 from bs4.element import Tag
 from bs4 import BeautifulSoup
-from ItchContext import ItchContext
+from ItchUser import ItchUser
 
 class ItchGame:
     def __init__(self, div: Tag):
@@ -45,14 +45,14 @@ class ItchGame:
         #TODO: Implement claimable check
         self.claimable = True
 
-    def claim_game(self, context: ItchContext):
-        r = context.s.post(context.url + '/download_url', json={'csrf_token': context.csrf_token})
+    def claim_game(self, user: ItchUser):
+        r = user.s.post(self.url + '/download_url', json={'csrf_token': user.csrf_token})
         download_url = json.loads(r.text)['url']
-        r = context.s.get(download_url)
+        r = user.s.get(download_url)
         soup = BeautifulSoup(r.text, 'html.parser')
         claim_url = soup.find('div', class_='claim_to_download_box warning_box').find('form')['action']
-        r = context.s.post(claim_url, 
-                        data={'csrf_token': context.csrf_token}, 
+        r = user.s.post(claim_url, 
+                        data={'csrf_token': user.csrf_token}, 
                         headers={ 'Content-Type': 'application/x-www-form-urlencoded'}
                         )
         print(r.url)

@@ -21,17 +21,17 @@
 # SOFTWARE.
 
 import os
-import ItchContext
+from ItchUser import ItchUser
 from ItchGame import ItchGame
 
 def main():
-    context = ItchContext.ItchContext(os.environ['uname'])
-    context.load_session()
-    # context.login(os.environ['passwd'], totp=os.environ['totp'])
-    # context.claim_game('https://dankoff.itch.io/sci-fi-wepon-pack')
+    user = ItchUser(os.environ['uname'])
+    user.load_session()
+    # user.login(os.environ['passwd'], totp=os.environ['totp'])
+    # user.claim_game('https://dankoff.itch.io/sci-fi-wepon-pack')
 
     games_list = ItchGame.get_sale_page(0)
 
-    context.save_session()
+    user.save_session()
 if __name__=="__main__":
     main()
