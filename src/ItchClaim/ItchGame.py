@@ -44,6 +44,11 @@ class ItchGame:
 
     def claim_game(self, user: ItchUser):
         r = user.s.post(self.url + '/download_url', json={'csrf_token': user.csrf_token})
+        resp = json.loads(r.text)
+        if 'errors' in resp:
+            print(f"ERROR: Failed to claim game {self.name} (url: {self.url})")
+            print(f"\t{resp['errors'][0]}")
+            return
         download_url = json.loads(r.text)['url']
         r = user.s.get(download_url)
         soup = BeautifulSoup(r.text, 'html.parser')
