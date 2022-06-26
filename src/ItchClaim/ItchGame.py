@@ -72,6 +72,8 @@ class ItchGame:
             game_parsed = ItchGame(div)
             if game_parsed.price == 0:
                 games.append(game_parsed)
+        if len(games) == 0 and json.loads(r.text)["num_items"] == 0:
+            return False
         return games
 
     @staticmethod

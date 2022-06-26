@@ -35,7 +35,7 @@ def main():
     
     for i in range(int(1e18)):
         page = ItchGame.get_sale_page(i)
-        if len(page) == 0:
+        if page == False:
             break
         games_list.extend(page)
         print (f'Sale page #{i+1}: added {len(page)} games (total: {len(games_list)})')
