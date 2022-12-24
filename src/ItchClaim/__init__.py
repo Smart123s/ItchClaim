@@ -26,8 +26,11 @@ from ItchGame import ItchGame
 
 def main():
     user = ItchUser(os.environ['uname'])
-    user.load_session()
-    # user.login(os.environ['passwd'], totp=os.environ['totp'])
+    try:
+        user.load_session()
+    except:
+        user.login(os.environ['passwd'], totp=os.environ['totp'])
+
     # user.claim_game('https://dankoff.itch.io/sci-fi-wepon-pack')
 
     print('Downloading game sales pages.')
