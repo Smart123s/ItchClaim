@@ -42,6 +42,12 @@ class ItchGame:
 
         #self.sale_percent (sometimes it's 50%, sometimes it's "In bundle")
 
+    def is_game_owned(self, user: ItchUser):
+        r = user.s.get(self.url, json={'csrf_token': user.csrf_token})
+        soup = BeautifulSoup(r.text, 'html.parser')
+        owned_box = soup.find('span', class_='ownership_reason')
+        return owned_box != None
+
     def claim_game(self, user: ItchUser):
         r = user.s.post(self.url + '/download_url', json={'csrf_token': user.csrf_token})
         resp = json.loads(r.text)
@@ -54,7 +60,7 @@ class ItchGame:
         soup = BeautifulSoup(r.text, 'html.parser')
         claim_box = soup.find('div', class_='claim_to_download_box warning_box')
         if claim_box == None:
-            print(f"Game {self.name} is either not claimable or already owned (url: {self.url})")
+            print(f"Game {self.name} is not claimable (url: {self.url})")
             return
         claim_url = claim_box.find('form')['action']
         r = user.s.post(claim_url, 
