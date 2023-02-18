@@ -48,6 +48,17 @@ class ItchGame:
         owned_box = soup.find('span', class_='ownership_reason')
         return owned_box != None
 
+    def is_game_claimable(self):
+        r = requests.get(self.url)
+        soup = BeautifulSoup(r.text, 'html.parser')
+        buy_row = soup.find('div', class_='buy_row')
+        if buy_row is None:
+            # Game is probably WebGL or HTML5 only
+            return False
+        buy_box = buy_row.find('a', class_='button buy_btn')
+        claimable = buy_box.text == 'Download or claim'
+        return claimable
+
     def claim_game(self, user: ItchUser):
         r = user.s.post(self.url + '/download_url', json={'csrf_token': user.csrf_token})
         resp = json.loads(r.text)
