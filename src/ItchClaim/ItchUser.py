@@ -20,7 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import requests, urllib, pyotp, os, platform, tempfile, json, getpass
+import requests, urllib, pyotp, os, json
+from appdirs import user_data_dir
 from typing import Optional
 from bs4 import BeautifulSoup
 
@@ -53,7 +54,7 @@ class ItchUser:
         self.save_session()
 
     def save_session(self):
-        os.makedirs(_get_config_dir(), exist_ok=True)
+        os.makedirs(user_data_dir('itchclaim'), exist_ok=True)
         data = {
             'csrf_token': self.csrf_token,
             'itchio': self.s.cookies['itchio']
@@ -68,24 +69,9 @@ class ItchUser:
         self.s.cookies.set('itchio_token', self.csrf_token, domain='.itch.io')
         self.s.cookies.set('itchio', data['itchio'], domain='.itch.io')
 
-    # Source: https://github.com/instaloader/instaloader/blob/853e8603/instaloader/instaloader.py#L42-L46
     def get_default_session_filename(self) -> str:
-        """Returns default session filename for the user."""
-        configdir = _get_config_dir()
-        sessionfilename = "session-{}.json".format(self.username)
-        return os.path.join(configdir, sessionfilename)
+        sessionfilename = f'session-{self.username}.json'
+        return os.path.join(user_data_dir('itchclaim', False), sessionfilename)
 
     def update_csrf(self):
         self.csrf_token = urllib.parse.unquote(self.s.cookies['itchio_token'])
-
-# Source: https://github.com/instaloader/instaloader/blob/853e8603/instaloader/instaloader.py#L30-L39
-def _get_config_dir() -> str:
-    if platform.system() == "Windows":
-        # on Windows, use %LOCALAPPDATA%\ItchClaim
-        localappdata = os.getenv("LOCALAPPDATA")
-        if localappdata is not None:
-            return os.path.join(localappdata, "ItchClaim")
-        # legacy fallback - store in temp dir if %LOCALAPPDATA% is not set
-        return os.path.join(tempfile.gettempdir(), ".itchclaim-" + getpass.getuser())
-    # on Unix, use ~/.config/itchclaim
-    return os.path.join(os.getenv("XDG_CONFIG_HOME", os.path.expanduser("~/.config")), "itchclaim")
