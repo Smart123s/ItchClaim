@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import datetime
+from datetime import datetime
 import json, requests, re
 from bs4.element import Tag
 from bs4 import BeautifulSoup
@@ -64,6 +64,14 @@ class ItchGame:
         buy_box = buy_row.find('a', class_='button buy_btn')
         claimable = buy_box.text == 'Download or claim'
         return claimable
+
+    @cached_property
+    def sale_end(self) -> datetime:
+        r = requests.get(self.url + '/data.json')
+        resp = json.loads(r.text)
+        date_str = resp['sale']['end_date']
+        date_format = '%Y-%m-%d %H:%M:%S'
+        return datetime.strptime(date_str, date_format)
 
     def claim_game(self, user: ItchUser):
         r = user.s.post(self.url + '/download_url', json={'csrf_token': user.csrf_token})
