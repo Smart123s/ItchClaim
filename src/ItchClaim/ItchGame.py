@@ -25,6 +25,7 @@ import json, requests, re
 from bs4.element import Tag
 from bs4 import BeautifulSoup
 from ItchUser import ItchUser
+from functools import cached_property
 
 class ItchGame:
     def __init__(self, div: Tag):
@@ -52,7 +53,8 @@ class ItchGame:
         owned_box = soup.find('span', class_='ownership_reason')
         return owned_box != None
 
-    def is_game_claimable(self):
+    @cached_property
+    def claimable(self) -> bool:
         r = requests.get(self.url)
         soup = BeautifulSoup(r.text, 'html.parser')
         buy_row = soup.find('div', class_='buy_row')
