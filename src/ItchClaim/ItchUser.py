@@ -54,7 +54,7 @@ class ItchUser:
         self.save_session()
 
     def save_session(self):
-        os.makedirs(user_data_dir('itchclaim'), exist_ok=True)
+        os.makedirs(get_users_dir(), exist_ok=True)
         data = {
             'csrf_token': self.csrf_token,
             'itchio': self.s.cookies['itchio']
@@ -71,7 +71,12 @@ class ItchUser:
 
     def get_default_session_filename(self) -> str:
         sessionfilename = f'session-{self.username}.json'
-        return os.path.join(user_data_dir('itchclaim', False), sessionfilename)
+        return os.path.join(get_users_dir(), sessionfilename)
 
     def update_csrf(self):
         self.csrf_token = urllib.parse.unquote(self.s.cookies['itchio_token'])
+
+@staticmethod
+def get_users_dir() -> str:
+    """Returns default directory for user storage"""
+    return os.path.join(user_data_dir('itchclaim', False), 'users')
