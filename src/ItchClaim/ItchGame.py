@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import datetime
 import json, requests, re
 from bs4.element import Tag
 from bs4 import BeautifulSoup
@@ -27,9 +28,12 @@ from ItchUser import ItchUser
 
 class ItchGame:
     def __init__(self, div: Tag):
+        self.id = div.attrs['data-game_id']
         a = div.find('a', class_='title game_link')
         self.name = a.text
         self.url = a.attrs['href']
+
+        self.cover_image = div.find('div', class_='game_thumb').find('img').attrs['data-lazy_src']
 
         price_element = div.find('div', attrs={'class': 'price_value'})
         # Some elements don't have a price defined
