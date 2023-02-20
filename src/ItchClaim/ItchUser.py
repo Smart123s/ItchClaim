@@ -25,7 +25,6 @@ import requests, urllib, pyotp, os, json
 from appdirs import user_data_dir
 from typing import Optional
 from bs4 import BeautifulSoup
-
 from ItchGame import ItchGame
 
 class ItchUser:
@@ -110,6 +109,24 @@ class ItchUser:
             print(f"ERROR: Failed to claim game {game.name} (url: {game.url})")
         else:
             print(f"Successfully claimed game {game.name} (url: {game.url})")
+
+    def get_one_library_page(self, page: int):
+        r = self.s.get(f"https://itch.io/my-purchases?page={page}&format=json")
+        html = json.loads(r.text)['content']
+        soup = BeautifulSoup(html, 'html.parser')
+        games_raw = soup.find_all('div', class_="game_cell")
+        games = []
+        for div in games_raw:
+            games.append(ItchGame(div))
+        return games
+
+    def reload_owned_games(self):
+        for i in range(int(1e18)):
+            page = self.get_one_library_page(i)
+            if len(page) == 0:
+                break
+            self.owned_games.extend(page)
+            print (f'Library page #{i+1}: added {len(page)} games (total: {len(self.owned_games)})')
 
 @staticmethod
 def get_users_dir() -> str:
