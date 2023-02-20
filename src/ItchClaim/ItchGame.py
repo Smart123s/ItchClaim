@@ -24,7 +24,6 @@ from datetime import datetime
 import json, requests, re
 from bs4.element import Tag
 from bs4 import BeautifulSoup
-from ItchUser import ItchUser
 from functools import cached_property
 
 class ItchGame:
@@ -47,12 +46,6 @@ class ItchGame:
 
         #self.sale_percent (sometimes it's 50%, sometimes it's "In bundle")
 
-    def is_game_owned(self, user: ItchUser):
-        r = user.s.get(self.url, json={'csrf_token': user.csrf_token})
-        soup = BeautifulSoup(r.text, 'html.parser')
-        owned_box = soup.find('span', class_='ownership_reason')
-        return owned_box != None
-
     @cached_property
     def claimable(self) -> bool:
         r = requests.get(self.url)
@@ -72,30 +65,6 @@ class ItchGame:
         date_str = resp['sale']['end_date']
         date_format = '%Y-%m-%d %H:%M:%S'
         return datetime.strptime(date_str, date_format)
-
-    def claim_game(self, user: ItchUser):
-        r = user.s.post(self.url + '/download_url', json={'csrf_token': user.csrf_token})
-        resp = json.loads(r.text)
-        if 'errors' in resp:
-            print(f"ERROR: Failed to claim game {self.name} (url: {self.url})")
-            print(f"\t{resp['errors'][0]}")
-            return
-        download_url = json.loads(r.text)['url']
-        r = user.s.get(download_url)
-        soup = BeautifulSoup(r.text, 'html.parser')
-        claim_box = soup.find('div', class_='claim_to_download_box warning_box')
-        if claim_box == None:
-            print(f"Game {self.name} is not claimable (url: {self.url})")
-            return
-        claim_url = claim_box.find('form')['action']
-        r = user.s.post(claim_url, 
-                        data={'csrf_token': user.csrf_token}, 
-                        headers={ 'Content-Type': 'application/x-www-form-urlencoded'}
-                        )
-        if r.url == 'https://itch.io/':
-            print(f"ERROR: Failed to claim game {self.name} (url: {self.url})")
-        else:
-            print(f"Successfully claimed game {self.name} (url: {self.url})")
 
     @staticmethod
     def get_sale_page(page: int):

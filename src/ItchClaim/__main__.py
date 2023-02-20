@@ -45,10 +45,10 @@ def main():
 
     print('\nClaiming games')
     for game in games_list:
-        if game.is_game_owned(user):
+        if user.owns_game(game):
             print(f"Game {game.name} has already been claimed (url: {game.url})")
             continue
-        game.claim_game(user)
+        user.claim_game(game)
 
     user.save_session()
 if __name__=="__main__":

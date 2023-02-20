@@ -26,6 +26,8 @@ from appdirs import user_data_dir
 from typing import Optional
 from bs4 import BeautifulSoup
 
+from ItchGame import ItchGame
+
 class ItchUser:
     def __init__(self, username):
         self.s = requests.Session()
@@ -75,6 +77,39 @@ class ItchUser:
     @cached_property
     def csrf_token(self) -> str:
         return urllib.parse.unquote(self.s.cookies['itchio_token'])
+
+    def owns_game(self, game: ItchGame):
+        return self.owns_game_online(game)
+
+    def owns_game_online(self, game: ItchGame):
+        r = self.s.get(game.url, json={'csrf_token': self.csrf_token})
+        soup = BeautifulSoup(r.text, 'html.parser')
+        owned_box = soup.find('span', class_='ownership_reason')
+        return owned_box != None
+
+    def claim_game(self, game: ItchGame):
+        r = self.s.post(game.url + '/download_url', json={'csrf_token': self.csrf_token})
+        resp = json.loads(r.text)
+        if 'errors' in resp:
+            print(f"ERROR: Failed to claim game {game.name} (url: {game.url})")
+            print(f"\t{resp['errors'][0]}")
+            return
+        download_url = json.loads(r.text)['url']
+        r = self.s.get(download_url)
+        soup = BeautifulSoup(r.text, 'html.parser')
+        claim_box = soup.find('div', class_='claim_to_download_box warning_box')
+        if claim_box == None:
+            print(f"Game {game.name} is not claimable (url: {game.url})")
+            return
+        claim_url = claim_box.find('form')['action']
+        r = self.s.post(claim_url, 
+                        data={'csrf_token': self.csrf_token}, 
+                        headers={ 'Content-Type': 'application/x-www-form-urlencoded'}
+                        )
+        if r.url == 'https://itch.io/':
+            print(f"ERROR: Failed to claim game {game.name} (url: {game.url})")
+        else:
+            print(f"Successfully claimed game {game.name} (url: {game.url})")
 
 @staticmethod
 def get_users_dir() -> str:
