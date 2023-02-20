@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from functools import cached_property
 import requests, urllib, pyotp, os, json
 from appdirs import user_data_dir
 from typing import Optional
@@ -32,7 +33,6 @@ class ItchUser:
 
     def login(self, password: str, totp: Optional[str]):
         self.s.get('https://itch.io/login')
-        self.update_csrf()
 
         data = {
             'csrf_token': self.csrf_token,
@@ -65,16 +65,16 @@ class ItchUser:
     def load_session(self):
         with open(self.get_default_session_filename(), 'r') as f:
             data = json.load(f)
-        self.csrf_token = data['csrf_token']
-        self.s.cookies.set('itchio_token', self.csrf_token, domain='.itch.io')
+        self.s.cookies.set('itchio_token', data['csrf_token'], domain='.itch.io')
         self.s.cookies.set('itchio', data['itchio'], domain='.itch.io')
 
     def get_default_session_filename(self) -> str:
         sessionfilename = f'session-{self.username}.json'
         return os.path.join(get_users_dir(), sessionfilename)
 
-    def update_csrf(self):
-        self.csrf_token = urllib.parse.unquote(self.s.cookies['itchio_token'])
+    @cached_property
+    def csrf_token(self) -> str:
+        return urllib.parse.unquote(self.s.cookies['itchio_token'])
 
 @staticmethod
 def get_users_dir() -> str:
