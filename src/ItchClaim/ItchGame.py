@@ -41,7 +41,7 @@ class ItchGame:
             price_str = re.findall("[-+]?(?:\d*\.\d+|\d+)", price_element.text)[0]
             self.price = float(price_str)
         else:
-            self.price = -1
+            self.price = None
             return
 
         #self.sale_percent (sometimes it's 50%, sometimes it's "In bundle")
