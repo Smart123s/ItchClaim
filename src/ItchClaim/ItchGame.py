@@ -84,7 +84,7 @@ class ItchGame:
 
     @staticmethod
     def get_sale_page(page: int):
-        r = requests.get(f"https://itch.io/games/on-sale?page={page}&format=json")
+        r = requests.get(f"https://itch.io/games/newest/on-sale?page={page}&format=json")
         html = json.loads(r.text)['content']
         soup = BeautifulSoup(html, 'html.parser')
         games_raw = soup.find_all('div', class_="game_cell")
