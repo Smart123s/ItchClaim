@@ -20,11 +20,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from typing import List
 import requests, json
 from bs4 import BeautifulSoup
 from ItchGame import ItchGame
 
-def get_sale_page(page: int):
+def get_sale_page(page: int) -> List[ItchGame]:
     r = requests.get(f"https://itch.io/games/newest/on-sale?page={page}&format=json")
     html = json.loads(r.text)['content']
     soup = BeautifulSoup(html, 'html.parser')
