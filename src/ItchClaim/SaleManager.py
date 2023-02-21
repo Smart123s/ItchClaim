@@ -20,36 +20,20 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import os
-from ItchUser import ItchUser
-import SaleManager
+import requests, json
+from bs4 import BeautifulSoup
+from ItchGame import ItchGame
 
-def main():
-    user = ItchUser(os.environ['uname'])
-    try:
-        user.load_session()
-    except:
-        user.login(os.environ['passwd'], totp=os.environ['totp'])
-
-    # user.claim_game('https://dankoff.itch.io/sci-fi-wepon-pack')
-
-    print('Downloading game sales pages.')
-    games_list = []
-    
-    for i in range(int(1e18)):
-        page = SaleManager.get_sale_page(i)
-        if page == False:
-            break
-        games_list.extend(page)
-        print (f'Sale page #{i+1}: added {len(page)} games (total: {len(games_list)})')
-
-    print('\nClaiming games')
-    for game in games_list:
-        if user.owns_game(game):
-            print(f"Game {game.name} has already been claimed (url: {game.url})")
-            continue
-        user.claim_game(game)
-
-    user.save_session()
-if __name__=="__main__":
-    main()
+def get_sale_page(page: int):
+    r = requests.get(f"https://itch.io/games/newest/on-sale?page={page}&format=json")
+    html = json.loads(r.text)['content']
+    soup = BeautifulSoup(html, 'html.parser')
+    games_raw = soup.find_all('div', class_="game_cell")
+    games = []
+    for div in games_raw:
+        game_parsed = ItchGame.from_div(div)
+        if game_parsed.price == 0:
+            games.append(game_parsed)
+    if len(games) == 0 and json.loads(r.text)["num_items"] == 0:
+        return False
+    return games

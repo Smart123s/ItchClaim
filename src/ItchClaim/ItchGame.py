@@ -81,22 +81,3 @@ class ItchGame:
         date_str = resp['sale']['end_date']
         date_format = '%Y-%m-%d %H:%M:%S'
         return datetime.strptime(date_str, date_format)
-
-    @staticmethod
-    def get_sale_page(page: int):
-        r = requests.get(f"https://itch.io/games/newest/on-sale?page={page}&format=json")
-        html = json.loads(r.text)['content']
-        soup = BeautifulSoup(html, 'html.parser')
-        games_raw = soup.find_all('div', class_="game_cell")
-        games = []
-        for div in games_raw:
-            game_parsed = ItchGame.from_div(div)
-            if game_parsed.price == 0:
-                games.append(game_parsed)
-        if len(games) == 0 and json.loads(r.text)["num_items"] == 0:
-            return False
-        return games
-
-    @staticmethod
-    def get_all_sales():
-        pass
