@@ -117,7 +117,7 @@ class ItchUser:
         games_raw = soup.find_all('div', class_="game_cell")
         games = []
         for div in games_raw:
-            games.append(ItchGame(div))
+            games.append(ItchGame.from_div(div))
         return games
 
     def reload_owned_games(self):

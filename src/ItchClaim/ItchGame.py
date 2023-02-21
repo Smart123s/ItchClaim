@@ -22,13 +22,17 @@
 
 from datetime import datetime
 import json, requests, re
+from typing import Self
 from bs4.element import Tag
 from bs4 import BeautifulSoup
 from functools import cached_property
 
 class ItchGame:
+    instances: dict[int, Self] = {}
+
     def __init__(self, div: Tag):
-        self.id = div.attrs['data-game_id']
+        self.id = int(div.attrs['data-game_id'])
+        ItchGame.instances[self.id] = self
         a = div.find('a', class_='title game_link')
         self.name = a.text
         self.url = a.attrs['href']
@@ -45,6 +49,18 @@ class ItchGame:
             return
 
         #self.sale_percent (sometimes it's 50%, sometimes it's "In bundle")
+
+    @staticmethod
+    def from_id(id: int):
+        return ItchGame.instances.get(id)
+
+    @staticmethod
+    def from_div(div: Tag):
+        id = int(div.attrs['data-game_id'])
+        game = ItchGame.instances.get(id)
+        if game is None:
+            game = ItchGame(div)
+        return game
 
     @cached_property
     def claimable(self) -> bool:
@@ -74,7 +90,7 @@ class ItchGame:
         games_raw = soup.find_all('div', class_="game_cell")
         games = []
         for div in games_raw:
-            game_parsed = ItchGame(div)
+            game_parsed = ItchGame.from_div(div)
             if game_parsed.price == 0:
                 games.append(game_parsed)
         if len(games) == 0 and json.loads(r.text)["num_items"] == 0:
