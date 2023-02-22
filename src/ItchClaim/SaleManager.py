@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import os
 from typing import List
 import requests, json
 from bs4 import BeautifulSoup
@@ -38,3 +39,10 @@ def get_sale_page(page: int) -> List[ItchGame]:
     if len(games) == 0 and json.loads(r.text)["num_items"] == 0:
         return False
     return games
+
+def load_all_games_from_disk():
+    l = [ItchGame]
+    for file in os.listdir(ItchGame.get_games_dir()):
+        path = os.path.join(ItchGame.get_games_dir(), file)
+        l.append(ItchGame.load_from_disk(path))
+    return l
