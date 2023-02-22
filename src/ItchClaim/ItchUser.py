@@ -23,7 +23,7 @@
 from functools import cached_property
 import requests, urllib, pyotp, os, json
 from appdirs import user_data_dir
-from typing import Optional
+from typing import List, Optional
 from bs4 import BeautifulSoup
 from ItchGame import ItchGame
 
@@ -31,6 +31,7 @@ class ItchUser:
     def __init__(self, username):
         self.s = requests.Session()
         self.username = username
+        self.owned_games: List[ItchGame] = []
 
     def login(self, password: str, totp: Optional[str]):
         self.s.get('https://itch.io/login')
