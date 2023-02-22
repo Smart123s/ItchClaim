@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import datetime
 import os
 from typing import List
 import requests, json
@@ -46,3 +47,8 @@ def load_all_games():
         path = os.path.join(ItchGame.get_games_dir(), file)
         l.append(ItchGame.load_from_disk(path))
     return l
+
+def remove_expired_sales():
+    for game in load_all_games():
+        if game.sale_end < datetime.datetime.now():
+            os.remove(game.get_default_game_filename())
