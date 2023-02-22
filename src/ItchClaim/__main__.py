@@ -22,7 +22,7 @@
 
 import os
 from ItchUser import ItchUser
-import SaleManager
+import DiskManager
 
 def main():
     user = ItchUser(os.environ['uname'])
@@ -37,7 +37,7 @@ def main():
     games_list = []
     
     for i in range(int(1e18)):
-        page = SaleManager.get_sale_page(i)
+        page = DiskManager.get_sale_page(i)
         if page == False:
             break
         games_list.extend(page)
