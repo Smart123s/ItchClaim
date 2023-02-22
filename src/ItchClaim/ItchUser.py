@@ -59,7 +59,8 @@ class ItchUser:
         os.makedirs(get_users_dir(), exist_ok=True)
         data = {
             'csrf_token': self.csrf_token,
-            'itchio': self.s.cookies['itchio']
+            'itchio': self.s.cookies['itchio'],
+            'owned_games': self.owned_games,
         }
         with open(self.get_default_session_filename(), 'w') as f:
             f.write(json.dumps(data))
@@ -69,6 +70,7 @@ class ItchUser:
             data = json.load(f)
         self.s.cookies.set('itchio_token', data['csrf_token'], domain='.itch.io')
         self.s.cookies.set('itchio', data['itchio'], domain='.itch.io')
+        self.owned_games = data['owned_games']
 
     def get_default_session_filename(self) -> str:
         sessionfilename = f'session-{self.username}.json'
