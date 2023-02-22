@@ -37,7 +37,7 @@ def main():
     games_list = []
     
     for i in range(int(1e18)):
-        page = DiskManager.get_sale_page(i)
+        page = DiskManager.get_online_sale_page(i)
         if page == False:
             break
         games_list.extend(page)

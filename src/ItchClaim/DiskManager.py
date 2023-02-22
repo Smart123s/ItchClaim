@@ -26,7 +26,7 @@ import requests, json
 from bs4 import BeautifulSoup
 from ItchGame import ItchGame
 
-def get_sale_page(page: int) -> List[ItchGame]:
+def get_online_sale_page(page: int) -> List[ItchGame]:
     r = requests.get(f"https://itch.io/games/newest/on-sale?page={page}&format=json")
     html = json.loads(r.text)['content']
     soup = BeautifulSoup(html, 'html.parser')
@@ -40,7 +40,7 @@ def get_sale_page(page: int) -> List[ItchGame]:
         return False
     return games
 
-def load_all_games_from_disk():
+def load_all_games():
     l = [ItchGame]
     for file in os.listdir(ItchGame.get_games_dir()):
         path = os.path.join(ItchGame.get_games_dir(), file)
