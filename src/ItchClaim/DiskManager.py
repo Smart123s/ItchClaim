@@ -42,7 +42,7 @@ def get_online_sale_page(page: int) -> List[ItchGame]:
     return games
 
 def load_all_games():
-    l = [ItchGame]
+    l: List[ItchGame] = []
     for file in os.listdir(ItchGame.get_games_dir()):
         path = os.path.join(ItchGame.get_games_dir(), file)
         l.append(ItchGame.load_from_disk(path))
