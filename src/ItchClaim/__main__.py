@@ -20,19 +20,32 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import os
+from fire import Fire
 from ItchUser import ItchUser
 import DiskManager
 
+class ItchClaim:
+    def __init__(self,
+                login: str = None,
+                password: str = None,
+                totp: str = None):
+        if login is not None:
+            self.user = ItchClaim._login(login, password, totp)
+    
+    def _login(login: str = None,
+               password: str = None,
+               totp: str = None) -> ItchUser:
+        user = ItchUser(login)
+        try:
+            user.load_session()
+            print(f'Session {login} loaded successfully')
+        except:
+            user.login(password, totp)
+            print(f'Logged in as {login}')
+        return user
+    
+
 def main():
-    user = ItchUser(os.environ['uname'])
-    try:
-        user.load_session()
-    except:
-        user.login(os.environ['passwd'], totp=os.environ['totp'])
-
-    # user.claim_game('https://dankoff.itch.io/sci-fi-wepon-pack')
-
     print('Downloading game sales pages.')
     games_list = []
     
@@ -51,5 +64,6 @@ def main():
         user.claim_game(game)
 
     user.save_session()
+
 if __name__=="__main__":
-    main()
+    Fire(ItchClaim)
