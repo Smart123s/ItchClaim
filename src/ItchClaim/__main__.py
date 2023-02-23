@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import os
 from fire import Fire
 from ItchUser import ItchUser
 import DiskManager
@@ -31,7 +32,25 @@ class ItchClaim:
                 totp: str = None):
         if login is not None:
             self.user = ItchClaim._login(login, password, totp)
-    
+
+    def refresh_sale_cache(object, clean: bool = False):
+        DiskManager.remove_expired_sales()
+        print('Downloading game sales pages.')
+        i = 1
+        more_games_exist = True
+        while more_games_exist:
+            page = DiskManager.get_online_sale_page(i)
+            if page == False:
+                break
+            for game in page:
+                if os.path.exists(game.get_default_game_filename()) and not clean:
+                    more_games_exist = False
+                    print(f'Game {game.name} has already been saved. Stopping execution')
+                    break
+                game.save_to_disk()
+            print(f'Sale page #{i+1}: added {len(page)} games')
+            i += 1
+
     def _login(login: str = None,
                password: str = None,
                totp: str = None) -> ItchUser:
@@ -48,13 +67,6 @@ class ItchClaim:
 def main():
     print('Downloading game sales pages.')
     games_list = []
-    
-    for i in range(int(1e18)):
-        page = DiskManager.get_online_sale_page(i)
-        if page == False:
-            break
-        games_list.extend(page)
-        print (f'Sale page #{i+1}: added {len(page)} games (total: {len(games_list)})')
 
     print('\nClaiming games')
     for game in games_list:
