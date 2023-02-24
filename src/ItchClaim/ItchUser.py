@@ -112,6 +112,9 @@ class ItchUser:
                         headers={ 'Content-Type': 'application/x-www-form-urlencoded'}
                         )
         if r.url == 'https://itch.io/':
+            if self.owns_game_online(game):
+                self.owned_games.append(game)
+                print(f"Game {game.name} has already been claimed (url: {game.url})")
             print(f"ERROR: Failed to claim game {game.name} (url: {game.url})")
         else:
             self.owned_games.append(game)
