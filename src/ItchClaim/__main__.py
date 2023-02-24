@@ -64,10 +64,14 @@ class ItchClaim:
         if self.user is None:
             print('You must be logged in')
             return
+        claimed_games = 0
         for game in DiskManager.load_all_games():
             if not self.user.owns_game(game) and game.claimable:
                 self.user.claim_game(game)
                 self.user.save_session()
+                claimed_games += 1
+        if claimed_games == 0:
+            print('No new games can be claimed. Forgot to refresh local sale cache?')
 
     def _login(login: str = None,
                password: str = None,
