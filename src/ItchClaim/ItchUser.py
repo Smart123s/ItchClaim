@@ -60,7 +60,7 @@ class ItchUser:
         data = {
             'csrf_token': self.csrf_token,
             'itchio': self.s.cookies['itchio'],
-            'owned_games': self.owned_games,
+            'owned_games': [game.id for game in self.owned_games],
         }
         with open(self.get_default_session_filename(), 'w') as f:
             f.write(json.dumps(data))
@@ -70,7 +70,7 @@ class ItchUser:
             data = json.load(f)
         self.s.cookies.set('itchio_token', data['csrf_token'], domain='.itch.io')
         self.s.cookies.set('itchio', data['itchio'], domain='.itch.io')
-        self.owned_games = data['owned_games']
+        self.owned_games  = [ItchGame(id) for id in data['owned_games']] 
 
     def get_default_session_filename(self) -> str:
         sessionfilename = f'session-{self.username}.json'
@@ -124,6 +124,7 @@ class ItchUser:
         return games
 
     def reload_owned_games(self):
+        self.owned_games = []
         for i in range(int(1e18)):
             page = self.get_one_library_page(i)
             if len(page) == 0:
