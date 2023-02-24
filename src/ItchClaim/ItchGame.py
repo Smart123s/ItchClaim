@@ -21,9 +21,9 @@
 # SOFTWARE.
 
 from datetime import datetime
-import json, requests, re
+import json, requests, re, urllib
 import os
-from typing import Self
+from typing import List, Self
 from bs4.element import Tag
 from bs4 import BeautifulSoup
 from functools import cached_property
@@ -103,6 +103,61 @@ class ItchGame:
         date_str = resp['sale']['end_date']
         date_format = '%Y-%m-%d %H:%M:%S'
         return datetime.strptime(date_str, date_format)
+
+    def downloadable_files(self, s: requests.Session = None) -> List:
+        if s is None:
+            s = requests.session()
+            s.get('https://itch.io/')
+        csrf_token = urllib.parse.unquote(s.cookies['itchio_token'])
+
+        r = s.post(self.url + '/download_url', json={'csrf_token': csrf_token})
+        resp = json.loads(r.text)
+        if 'errors' in resp:
+            print(f"ERROR: Failed to get download links for game {self.name} (url: {self.url})")
+            print(f"\t{resp['errors'][0]}")
+            return
+        download_page = json.loads(r.text)['url']
+        r = s.get(download_page)
+        soup = BeautifulSoup(r.text, 'html.parser')
+        uploads_div = soup.find_all('div', class_='upload')
+        uploads = []
+        for upload_div in uploads_div:
+            uploads.append(self.parse_download_div(upload_div, s))
+        return uploads
+
+    def parse_download_div(self, div: Tag, s: requests.Session):
+        id = int(div.find('a', class_ = 'button download_btn').attrs['data-upload_id'])
+
+        # Upload Date
+        upload_date_raw = div.find('div', class_ = 'upload_date').find('abbr').attrs['title']
+        date_format = '%d %B %Y @ %H:%M'
+        upload_date = datetime.strptime(upload_date_raw, date_format)
+
+        # Platforms
+        platforms = []
+        # List of every platform available on itch.io
+        ITCHIO_PLATFORMS = ['windows8', 'android', 'tux', 'apple']
+        platforms_span = div.find('span', class_ = 'download_platforms')
+        if platforms_span is not None:
+            for platform in ITCHIO_PLATFORMS:
+                if platforms_span.find('span', class_ = f'icon icon-{platform}'):
+                    platforms.append(platform)
+
+        # Get download url
+        csrf_token = urllib.parse.unquote(s.cookies['itchio_token'])
+        r = s.post(self.url + f'/file/{id}',
+                    json={'csrf_token': csrf_token},
+                    params={'source': 'game_download'})
+        download_url= json.loads(r.text)['url']
+
+        return {
+            'id': id,
+            'name': div.find('strong', class_ = 'name').text,
+            'file_size': div.find('span', class_ = 'file_size').next.text,
+            'upload_date': upload_date.timestamp(),
+            'platforms': platforms,
+            'url': download_url,
+        }
     
     @staticmethod
     def get_games_dir() -> str:

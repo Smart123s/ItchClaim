@@ -23,6 +23,7 @@
 import os
 from fire import Fire
 from ItchUser import ItchUser
+from ItchGame import ItchGame
 import DiskManager
 
 class ItchClaim:
@@ -72,6 +73,12 @@ class ItchClaim:
                 claimed_games += 1
         if claimed_games == 0:
             print('No new games can be claimed. Forgot to refresh local sale cache?')
+    
+    def download_urls(self, id: int):
+        path = os.path.join(ItchGame.get_games_dir(), str(id) + '.json')
+        game: ItchGame = ItchGame.load_from_disk(path)
+        session = self.user.s if self.user is not None else None
+        print(game.downloadable_files(session))
 
     def _login(login: str = None,
                password: str = None,
