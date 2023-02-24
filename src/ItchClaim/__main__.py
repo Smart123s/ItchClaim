@@ -32,6 +32,8 @@ class ItchClaim:
                 totp: str = None):
         if login is not None:
             self.user = ItchClaim._login(login, password, totp)
+        else:
+            self.user = None
 
     def refresh_sale_cache(object, clean: bool = False):
         DiskManager.remove_expired_sales()
@@ -50,6 +52,13 @@ class ItchClaim:
                 game.save_to_disk()
             print(f'Sale page #{i+1}: added {len(page)} games')
             i += 1
+
+    def refresh_library(self):
+        if self.user is None:
+            print('You must be logged in')
+            return
+        self.user.reload_owned_games()
+        self.user.save_session()
 
     def _login(login: str = None,
                password: str = None,
