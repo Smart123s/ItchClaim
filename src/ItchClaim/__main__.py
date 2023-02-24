@@ -60,6 +60,15 @@ class ItchClaim:
         self.user.reload_owned_games()
         self.user.save_session()
 
+    def claim(self):
+        if self.user is None:
+            print('You must be logged in')
+            return
+        for game in DiskManager.load_all_games():
+            if not self.user.owns_game(game):
+                self.user.claim_game(game)
+        self.user.save_session()
+
     def _login(login: str = None,
                password: str = None,
                totp: str = None) -> ItchUser:
@@ -71,20 +80,6 @@ class ItchClaim:
             user.login(password, totp)
             print(f'Logged in as {login}')
         return user
-    
-
-def main():
-    print('Downloading game sales pages.')
-    games_list = []
-
-    print('\nClaiming games')
-    for game in games_list:
-        if user.owns_game(game):
-            print(f"Game {game.name} has already been claimed (url: {game.url})")
-            continue
-        user.claim_game(game)
-
-    user.save_session()
 
 if __name__=="__main__":
     Fire(ItchClaim)
