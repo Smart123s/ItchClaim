@@ -81,7 +81,10 @@ class ItchUser:
         return urllib.parse.unquote(self.s.cookies['itchio_token'])
 
     def owns_game(self, game: ItchGame):
-        return self.owns_game_online(game)
+        for oid in [owned_game.id for owned_game in self.owned_games]:
+            if game.id == oid:
+                return True
+        return False
 
     def owns_game_online(self, game: ItchGame):
         r = self.s.get(game.url, json={'csrf_token': self.csrf_token})
@@ -111,6 +114,7 @@ class ItchUser:
         if r.url == 'https://itch.io/':
             print(f"ERROR: Failed to claim game {game.name} (url: {game.url})")
         else:
+            self.owned_games.append(game)
             print(f"Successfully claimed game {game.name} (url: {game.url})")
 
     def get_one_library_page(self, page: int):
