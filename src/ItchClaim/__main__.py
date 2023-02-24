@@ -65,7 +65,7 @@ class ItchClaim:
             print('You must be logged in')
             return
         for game in DiskManager.load_all_games():
-            if not self.user.owns_game(game):
+            if not self.user.owns_game(game) and game.claimable:
                 self.user.claim_game(game)
                 self.user.save_session()
 
