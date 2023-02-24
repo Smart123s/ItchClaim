@@ -67,7 +67,7 @@ class ItchClaim:
         for game in DiskManager.load_all_games():
             if not self.user.owns_game(game):
                 self.user.claim_game(game)
-        self.user.save_session()
+                self.user.save_session()
 
     def _login(login: str = None,
                password: str = None,
