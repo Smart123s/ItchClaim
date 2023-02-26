@@ -37,7 +37,8 @@ class ItchClaim:
             self.user = None
 
     def refresh_sale_cache(object, clean: bool = False):
-        DiskManager.remove_expired_sales()
+        num_of_removed_games = DiskManager.remove_expired_sales()
+        print(f'Removed {num_of_removed_games} expired sales from disk')
         print('Downloading game sales pages.')
         i = 1
         more_games_exist = True

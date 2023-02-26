@@ -48,7 +48,10 @@ def load_all_games():
         l.append(ItchGame.load_from_disk(path))
     return l
 
-def remove_expired_sales():
+def remove_expired_sales() -> int:
+    i = 0
     for game in load_all_games():
         if game.sale_end < datetime.datetime.now():
             os.remove(game.get_default_game_filename())
+            i += 1
+    return i
