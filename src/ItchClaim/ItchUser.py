@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 from functools import cached_property
+from getpass import getpass
 import requests, urllib, pyotp, os, json
 from appdirs import user_data_dir
 from typing import List, Optional
@@ -36,6 +37,9 @@ class ItchUser:
     def login(self, password: str, totp: Optional[str]):
         self.s.get('https://itch.io/login')
 
+        if password is None:
+            password = getpass(f'Enter password for user {self.username}: ')
+
         data = {
             'csrf_token': self.csrf_token,
             'tz': -120,
@@ -43,15 +47,30 @@ class ItchUser:
             'password': password,
         }
         r = self.s.post('https://itch.io/login', params=data)
+        soup = BeautifulSoup(r.text, 'html.parser')
+
+        errors_div = soup.find('div', class_='form_errors')
+        if errors_div:
+            print(f'Error while logging in: ' + errors_div.find('li').text)
+            exit(1)
 
         if r.url.find('totp/') != -1:
-            soup = BeautifulSoup(r.text, 'html.parser')
+            if totp is None:
+                totp = input('Enter 2FA code: ')
+            if len(totp) != 6:
+                totp = pyotp.TOTP(totp).now()
             data = {
                 'csrf_token': self.csrf_token,
                 'userid': soup.find_all(attrs={"name": "user_id"})[0]['value'],
-                'code': int(pyotp.TOTP(totp).now()),
+                'code': int(totp),
             }
             r = self.s.post(r.url, params=data)
+            soup = BeautifulSoup(r.text, 'html.parser')
+
+            errors_div = soup.find('div', class_='form_errors')
+            if errors_div:
+                print(f'Error while logging in: ' + errors_div.find('li').text)
+                exit(1)
 
         self.save_session()
 
