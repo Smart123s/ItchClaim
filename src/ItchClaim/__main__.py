@@ -72,12 +72,20 @@ class ItchClaim:
         self.user.reload_owned_games()
         self.user.save_session()
 
-    def claim(self):
+    def claim(self, no_cache_refresh: bool = False):
         """Claim all unowned games. Requires login.
         """
         if self.user is None:
             print('You must be logged in')
             return
+        if not no_cache_refresh:
+            if len(self.user.owned_games) == 0:
+                print('User\'s library not found in cache. Downloading it now')
+                self.user.reload_owned_games()
+                self.user.save_session()
+            print('Looking for new free games')
+            self.refresh_sale_cache()
+        print('Claiming games')
         claimed_games = 0
         for game in DiskManager.load_all_games():
             if not self.user.owns_game(game) and game.claimable:
@@ -85,7 +93,7 @@ class ItchClaim:
                 self.user.save_session()
                 claimed_games += 1
         if claimed_games == 0:
-            print('No new games can be claimed. Forgot to refresh local sale cache?')
+            print('No new games can be claimed.')
     
     def download_urls(self, id: int):
         """Get details about a game, including it's CDN URLs.
