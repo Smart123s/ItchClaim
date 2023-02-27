@@ -33,7 +33,8 @@ def get_online_sale_page(page: int) -> List[ItchGame]:
     Returns:
         List[ItchGame]: The free games present on the page
     """
-    r = requests.get(f"https://itch.io/games/newest/on-sale?page={page}&format=json")
+    r = requests.get(f"https://itch.io/games/newest/on-sale?page={page}&format=json",
+                    headers={'User-Agent': 'ItchClaim 1.0'})
     html = json.loads(r.text)['content']
     soup = BeautifulSoup(html, 'html.parser')
     games_raw = soup.find_all('div', class_="game_cell")

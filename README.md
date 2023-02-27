@@ -40,3 +40,12 @@ itchclaim [--login <username>] download_urls
 ```
 Generate a download URL for a game. These links have an expiration date. If the game doesn't require claiming, this command can be run without logging in.
 *Note: this command is unfinished and currently only works for games that are present in the local sale cache.*
+
+
+### FAQ
+
+#### Is this legal?
+This tools is not affiliated with itch.io. Using it may not be allowed, and may result in your account getting suspended or banned. Use at your own risk.
+
+#### Can itch.io detect that I'm using this tool?
+Yes. We use the `user-agent` header to explicitly let itch.io know that the requests were sent by this tool.

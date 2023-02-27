@@ -34,6 +34,8 @@ class ItchUser:
         self.username = username
         self.owned_games: List[ItchGame] = []
 
+        self.s.headers.update({'User-Agent': 'ItchClaim 1.0'})
+
     def login(self, password: str, totp: Optional[str]):
         """Create a new session on itch.io"""
         self.s.get('https://itch.io/login')
