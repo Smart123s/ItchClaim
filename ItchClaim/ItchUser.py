@@ -26,7 +26,7 @@ import requests, urllib, pyotp, os, json
 from appdirs import user_data_dir
 from typing import List, Optional
 from bs4 import BeautifulSoup
-from ItchGame import ItchGame
+from .ItchGame import ItchGame
 
 class ItchUser:
     def __init__(self, username):

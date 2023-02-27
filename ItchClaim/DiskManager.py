@@ -25,7 +25,7 @@ import os
 from typing import List
 import requests, json
 from bs4 import BeautifulSoup
-from ItchGame import ItchGame
+from .ItchGame import ItchGame
 
 def get_online_sale_page(page: int) -> List[ItchGame]:
     """Get a page of the sales feed from itch.io, and collect the free ones

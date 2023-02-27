@@ -22,9 +22,9 @@
 
 import os
 from fire import Fire
-from ItchUser import ItchUser
-from ItchGame import ItchGame
-import DiskManager
+from . import DiskManager
+from . import ItchUser
+from . import ItchGame
 
 class ItchClaim:
     def __init__(self,
@@ -131,5 +131,5 @@ class ItchClaim:
             print(f'Logged in as {username}')
         return user
 
-if __name__=="__main__":
+def main():
     Fire(ItchClaim)
