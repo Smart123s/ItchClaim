@@ -48,20 +48,25 @@ class ItchClaim:
         num_of_removed_games = DiskManager.remove_expired_sales()
         print(f'Removed {num_of_removed_games} expired sales from disk')
         print('Downloading game sales pages.')
-        i = 1
+        page_num = 1
+        game_num = 0
         more_games_exist = True
         while more_games_exist:
-            page = DiskManager.get_online_sale_page(i)
+            page = DiskManager.get_online_sale_page(page_num)
             if page == False:
                 break
             for game in page:
                 if os.path.exists(game.get_default_game_filename()) and not clean:
                     more_games_exist = False
                     print(f'Game {game.name} has already been saved. Stopping execution')
+                    page.remove(game)
                     break
                 game.save_to_disk()
-            print(f'Sale page #{i+1}: added {len(page)} games')
-            i += 1
+                game_num += 1
+            print(f'Sale page #{page_num}: added {len(page)} games')
+            page_num += 1
+        if game_num == 0:
+            print('No new free games found')
 
     def refresh_library(self):
         """Refresh the list of owned games of an account. This is used to skip claiming already owned games. Requires login.
