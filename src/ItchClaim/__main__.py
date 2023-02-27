@@ -37,6 +37,14 @@ class ItchClaim:
             self.user = None
 
     def refresh_sale_cache(object, clean: bool = False):
+        """Refresh the locally stored cache about game sales
+        Deletes expired sales from the disk.
+        Opens itch.io and downloads details about the latest sales.
+        Stops if a saved sale is found.
+
+        Args:
+            clean (bool): Re-download cached sales too.
+        """
         num_of_removed_games = DiskManager.remove_expired_sales()
         print(f'Removed {num_of_removed_games} expired sales from disk')
         print('Downloading game sales pages.')
@@ -56,6 +64,8 @@ class ItchClaim:
             i += 1
 
     def refresh_library(self):
+        """Refresh the list of owned games of an account. This is used to skip claiming already owned games. Requires login.
+        """
         if self.user is None:
             print('You must be logged in')
             return
@@ -63,6 +73,8 @@ class ItchClaim:
         self.user.save_session()
 
     def claim(self):
+        """Claim all unowned games. Requires login.
+        """
         if self.user is None:
             print('You must be logged in')
             return
@@ -76,21 +88,34 @@ class ItchClaim:
             print('No new games can be claimed. Forgot to refresh local sale cache?')
     
     def download_urls(self, id: int):
+        """Get details about a game, including it's CDN URLs.
+        """
         path = os.path.join(ItchGame.get_games_dir(), str(id) + '.json')
         game: ItchGame = ItchGame.load_from_disk(path)
         session = self.user.s if self.user is not None else None
         print(game.downloadable_files(session))
 
-    def _login(login: str = None,
+    def _login(username: str = None,
                password: str = None,
                totp: str = None) -> ItchUser:
-        user = ItchUser(login)
+        """Load session from disk if exists, or use password otherwise.
+
+        Args:
+            username (str): The username or email address of the user
+            password (str): The password of the user
+            totp (str): The 2FA code of the user
+                Either the 6 digit code, or the secret used to generate the code
+        
+        Returns:
+            ItchUser: a logged in ItchUser instance
+        """
+        user = ItchUser(username)
         try:
             user.load_session()
-            print(f'Session {login} loaded successfully')
+            print(f'Session {username} loaded successfully')
         except:
             user.login(password, totp)
-            print(f'Logged in as {login}')
+            print(f'Logged in as {username}')
         return user
 
 if __name__=="__main__":

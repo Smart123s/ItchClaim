@@ -35,6 +35,7 @@ class ItchUser:
         self.owned_games: List[ItchGame] = []
 
     def login(self, password: str, totp: Optional[str]):
+        """Create a new session on itch.io"""
         self.s.get('https://itch.io/login')
 
         if password is None:
@@ -75,6 +76,7 @@ class ItchUser:
         self.save_session()
 
     def save_session(self):
+        """Save session to disk"""
         os.makedirs(get_users_dir(), exist_ok=True)
         data = {
             'csrf_token': self.csrf_token,
@@ -85,6 +87,7 @@ class ItchUser:
             f.write(json.dumps(data))
 
     def load_session(self):
+        """Load a user's session from disk"""
         with open(self.get_default_session_filename(), 'r') as f:
             data = json.load(f)
         self.s.cookies.set('itchio_token', data['csrf_token'], domain='.itch.io')
@@ -92,11 +95,13 @@ class ItchUser:
         self.owned_games  = [ItchGame(id) for id in data['owned_games']] 
 
     def get_default_session_filename(self) -> str:
+        """Get the default session path"""
         sessionfilename = f'session-{self.username}.json'
         return os.path.join(get_users_dir(), sessionfilename)
 
     @cached_property
     def csrf_token(self) -> str:
+        """Extract CSRF token from cookies"""
         return urllib.parse.unquote(self.s.cookies['itchio_token'])
 
     def owns_game(self, game: ItchGame):
@@ -106,6 +111,7 @@ class ItchUser:
         return False
 
     def owns_game_online(self, game: ItchGame):
+        """Check on itch.io if the user own's a game"""
         r = self.s.get(game.url, json={'csrf_token': self.csrf_token})
         soup = BeautifulSoup(r.text, 'html.parser')
         owned_box = soup.find('span', class_='ownership_reason')
@@ -140,6 +146,7 @@ class ItchUser:
             print(f"Successfully claimed game {game.name} (url: {game.url})")
 
     def get_one_library_page(self, page: int):
+        """Get one page of the user's library"""
         r = self.s.get(f"https://itch.io/my-purchases?page={page}&format=json")
         html = json.loads(r.text)['content']
         soup = BeautifulSoup(html, 'html.parser')
@@ -150,6 +157,7 @@ class ItchUser:
         return games
 
     def reload_owned_games(self):
+        """Reload the cache of the user's library"""
         self.owned_games = []
         for i in range(int(1e18)):
             page = self.get_one_library_page(i)

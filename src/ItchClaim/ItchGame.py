@@ -35,6 +35,7 @@ class ItchGame:
 
     @staticmethod
     def from_div(div: Tag) -> Self:
+        """Create an ItchGame Instance from a div that's found in the sale page or the my purchases page"""
         id = int(div.attrs['data-game_id'])
         self = ItchGame(id)
         a = div.find('a', class_='title game_link')
@@ -53,6 +54,7 @@ class ItchGame:
         return self
 
     def save_to_disk(self):
+        """Save the details of game to the disk"""
         os.makedirs(ItchGame.get_games_dir(), exist_ok=True)
         data = {
             'id': self.id,
@@ -68,6 +70,7 @@ class ItchGame:
 
     @staticmethod
     def load_from_disk(path: str) -> Self:
+        """Load cached details about game from the disk"""
         with open(path, 'r') as f:
             data = json.loads(f.read())
         id = data['id']
@@ -81,6 +84,7 @@ class ItchGame:
         return self
 
     def get_default_game_filename(self) -> str:
+        """Get the default path of the game's cache file"""
         sessionfilename = f'{self.id}.json'
         return os.path.join(ItchGame.get_games_dir(), sessionfilename)
 
@@ -105,6 +109,10 @@ class ItchGame:
         return datetime.strptime(date_str, date_format)
 
     def downloadable_files(self, s: requests.Session = None) -> List:
+        """Get details about a game, including it's CDN URls
+       
+        Args:
+            s (Session): The session used to get the download links"""
         if s is None:
             s = requests.session()
             s.get('https://itch.io/')
@@ -126,6 +134,14 @@ class ItchGame:
         return uploads
 
     def parse_download_div(self, div: Tag, s: requests.Session):
+        """Extract details about a game. 
+        
+        Args:
+            div (Tag): A div containing download information
+            s (Session): The session used to get the download links
+
+        Returns:
+            dict: Details about the game's files"""
         id = int(div.find('a', class_ = 'button download_btn').attrs['data-upload_id'])
 
         # Upload Date

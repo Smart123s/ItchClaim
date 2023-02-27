@@ -28,6 +28,11 @@ from bs4 import BeautifulSoup
 from ItchGame import ItchGame
 
 def get_online_sale_page(page: int) -> List[ItchGame]:
+    """Get a page of the sales feed from itch.io, and collect the free ones
+    
+    Returns:
+        List[ItchGame]: The free games present on the page
+    """
     r = requests.get(f"https://itch.io/games/newest/on-sale?page={page}&format=json")
     html = json.loads(r.text)['content']
     soup = BeautifulSoup(html, 'html.parser')
@@ -42,6 +47,7 @@ def get_online_sale_page(page: int) -> List[ItchGame]:
     return games
 
 def load_all_games():
+    """Load all games cached on the disk"""
     l: List[ItchGame] = []
     for file in os.listdir(ItchGame.get_games_dir()):
         path = os.path.join(ItchGame.get_games_dir(), file)
@@ -49,6 +55,11 @@ def load_all_games():
     return l
 
 def remove_expired_sales() -> int:
+    """Removes expired sales from the disk cache
+    
+    Returns:
+        int: The number of games removed
+    """
     i = 0
     for game in load_all_games():
         if game.sale_end < datetime.datetime.now():
