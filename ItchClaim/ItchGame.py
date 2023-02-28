@@ -28,6 +28,7 @@ from bs4.element import Tag
 from bs4 import BeautifulSoup
 from functools import cached_property
 from appdirs import user_data_dir
+from importlib.metadata import version
 
 class ItchGame:
     def __init__(self, id: int):
@@ -115,7 +116,7 @@ class ItchGame:
             s (Session): The session used to get the download links"""
         if s is None:
             s = requests.session()
-            s.headers.update(headers={'User-Agent': 'ItchClaim 1.0'})
+            s.headers.update(headers={'User-Agent': f'ItchClaim {version("ItchClaim")}'})
             s.get('https://itch.io/')
         csrf_token = urllib.parse.unquote(s.cookies['itchio_token'])
 

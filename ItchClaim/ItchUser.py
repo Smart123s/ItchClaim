@@ -27,6 +27,7 @@ from appdirs import user_data_dir
 from typing import List, Optional
 from bs4 import BeautifulSoup
 from .ItchGame import ItchGame
+from importlib.metadata import version
 
 class ItchUser:
     def __init__(self, username):
@@ -34,7 +35,7 @@ class ItchUser:
         self.username = username
         self.owned_games: List[ItchGame] = []
 
-        self.s.headers.update({'User-Agent': 'ItchClaim 1.0'})
+        self.s.headers.update({'User-Agent': f'ItchClaim {version("ItchClaim")}'})
 
     def login(self, password: str, totp: Optional[str]):
         """Create a new session on itch.io"""
