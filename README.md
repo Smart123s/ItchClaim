@@ -11,10 +11,10 @@ pip install ItchClaim
 ```bash
 itchclaim --login <username> claim
 ```
-This command logs the user in, refreshes the currently free games, and start claiming the unowned ones.
+This command logs in the user (asks for password if it's ran for the first time), refreshes the list of currently free games, and start claiming the unowned ones.
 
 #### Logging in
-If no password is provided via flags, you will be prompted to enter you password. However, if you don't have access to an interactive shell, you can provide you password via flags.
+If you don't have access to an interactive shell, you can provide you password via flags too.
 
 ```bash
 itchclaim --login <username> --password <password> --totp <2FA code or secret>
@@ -48,4 +48,4 @@ Generate a download URL for a game. These links have an expiration date. If the 
 This tools is not affiliated with itch.io. Using it may not be allowed, and may result in your account getting suspended or banned. Use at your own risk.
 
 ### Can itch.io detect that I'm using this tool?
-Yes. We use the `user-agent` header to explicitly let itch.io know that the requests were sent by this tool.
+Yes. We explicitly let itch.io know that use the the requests were sent by this tool, using the `user-agent` header.
