@@ -23,8 +23,8 @@
 import os
 from fire import Fire
 from . import DiskManager
-from . import ItchUser
-from . import ItchGame
+from .ItchUser import ItchUser
+from .ItchGame import ItchGame
 
 class ItchClaim:
     def __init__(self,
