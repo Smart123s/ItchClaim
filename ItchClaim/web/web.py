@@ -25,10 +25,10 @@ from string import Template
 from typing import List
 from .. import DiskManager
 
-DATE_FORMAT = '%Y-%m-%d %H:%M'
+DATE_FORMAT = '<span>%Y-%m-%d</span> <span>%H:%M</span>'
 ROW_TEMPLATE = Template("""<tr>
         <td>$name</td>
-        <td>$sale_end</td>
+        <td style="text-align:center">$sale_end</td>
         <td style="text-align:center" title="Claimable">$claimable</td>
         <td><a href="$url" title="URL">&#x1F310;</a></td>
         <td><a href="/data/$id.json" title="JSON data">&#x1F4DC;</a></td>
