@@ -1,0 +1,55 @@
+name: Deploy Web
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  # Build job
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+        shell: bash
+      - name: Scrape itch.io
+        run: python itchclaim.py refresh_sale_cache
+      - name: Create web directory
+        run: mkdir -p web/data
+      - name: Generate index.html
+        run: python itchclaim.py generate_web > web/index.html
+      - name: Move JSONs to web/data directory
+        run: mv ~/.local/share/itchclaim/games/* web/data/
+      - name: Upload Page
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: web/
+
+  # Deploy job
+  deploy:
+    # Add a dependency to the build job
+    needs: build
+
+    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
+
+    # Deploy to the github-pages environment
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    # Specify runner + deployment step
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1
