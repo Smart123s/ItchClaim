@@ -38,7 +38,7 @@ class ItchClaim:
         else:
             self.user = None
 
-    def refresh_sale_cache(object, clean: bool = False):
+    def refresh_sale_cache(object, clean: bool = True):
         """Refresh the locally stored cache about game sales
         Deletes expired sales from the disk.
         Opens itch.io and downloads details about the latest sales.
@@ -46,6 +46,8 @@ class ItchClaim:
 
         Args:
             clean (bool): Re-download cached sales too.
+            Note: sorting by latest seems to be broken on itch.io's end.
+            For that reason, non-clean refreshes have been disabled in the cli.
         """
         num_of_removed_games = DiskManager.remove_expired_sales()
         print(f'Removed {num_of_removed_games} expired sales from disk')
