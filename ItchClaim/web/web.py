@@ -20,10 +20,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from datetime import datetime
 from string import Template
 from typing import List
 from .. import DiskManager
 
+DATE_FORMAT = '%Y-%m-%d %H:%M'
 ROW_TEMPLATE = Template("""<tr>
         <td>$name</td>
         <td>$sale_end</td>
@@ -38,12 +40,14 @@ def generate_html():
     games = DiskManager.load_all_games()
     rows: List[str] = []
     for game in games:
-        date_format = '%Y-%m-%d %H:%M'
         rows.append(ROW_TEMPLATE.substitute(
             name = game.name,
-            sale_end = game.sale_end.strftime(date_format),
+            sale_end = game.sale_end.strftime(DATE_FORMAT),
             claimable = '&#x2714;' if game.claimable else '&#x274C;',
             url = game.url,
             id = game.id,
         ))
-    return template.substitute(rows='\n'.join(rows))
+    return template.substitute(
+            rows = '\n'.join(rows),
+            last_update = datetime.now().strftime(DATE_FORMAT),
+        )
