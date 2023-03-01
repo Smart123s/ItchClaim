@@ -3,11 +3,10 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 [project]
 name = "ItchClaim"
-version = "1.0.0"
 authors = [
   { name="Smart123s" },
 ]
-dynamic = ["dependencies"]
+dynamic = ["dependencies", "version"]
 description = "Automatically claim free games from itch.io"
 readme = "README.md"
 requires-python = ">=3.6"
@@ -35,3 +34,4 @@ itchclaim = "ItchClaim.__main__:main"
 
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
+version = {attr = "ItchClaim.__init__.__version__"}

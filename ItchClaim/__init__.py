@@ -1,3 +1,1 @@
-from importlib.metadata import version
-
-__version__ = version("ItchClaim")
+__version__ = "1.0.0"

@@ -26,7 +26,7 @@ from typing import List
 import requests, json
 from bs4 import BeautifulSoup
 from .ItchGame import ItchGame
-from importlib.metadata import version
+from . import __version__
 
 def get_online_sale_page(page: int) -> List[ItchGame]:
     """Get a page of the sales feed from itch.io, and collect the free ones
@@ -35,7 +35,7 @@ def get_online_sale_page(page: int) -> List[ItchGame]:
         List[ItchGame]: The free games present on the page
     """
     r = requests.get(f"https://itch.io/games/newest/on-sale?page={page}&format=json",
-                    headers={'User-Agent': f'ItchClaim {version("ItchClaim")}'})
+                    headers={'User-Agent': f'ItchClaim {__version__}'})
     html = json.loads(r.text)['content']
     soup = BeautifulSoup(html, 'html.parser')
     games_raw = soup.find_all('div', class_="game_cell")
