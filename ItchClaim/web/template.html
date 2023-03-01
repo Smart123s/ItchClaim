@@ -5,19 +5,40 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Itch.io Free Games</title>
+        <style>
+            @media only screen and (min-width: 600px) {
+                main {
+                    display: flex;
+                }
+            }
+        </style>
     </head>
     <body>
         <h1>Itch.io Free Games</h1>
-        <p>Last updated on $last_update</p>
-        <table>
-            <tr>
-                <th>Name</th>
-                <th>Sale end</th>
-                <th></th><!--Claimable-->
-                <th></th><!--URL-->
-                <th></th><!--JSON-->
-            </tr>
-            $rows
-        </table>
+        <main>
+            <div>
+                <h2>Games on sale</h2>
+                <table>
+                    <tr>
+                        <th>Name</th>
+                        <th>Sale end</th>
+                        <th></th><!--Claimable-->
+                        <th></th><!--URL-->
+                        <th></th><!--JSON-->
+                    </tr>
+                    $rows
+                </table>
+            </div>
+            <div style="margin-left: 20px;">
+                <h2>Last update</h2>
+                <p>$last_update</p>
+
+                <h2>Legend</h2>
+                <p>&#x1F310;: Game URL on itch.io</p>
+                <p>&#x1F4DC;: Details about the game in JSON format</p>
+                <p>&#x2714;: Claimable game</p>
+                <p>&#x274C;: Download only game</p>
+            </div>
+        </main>
     </body>
 </html>
