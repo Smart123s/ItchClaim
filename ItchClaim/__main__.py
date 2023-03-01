@@ -113,6 +113,7 @@ class ItchClaim:
         print(game.downloadable_files(session))
 
     def generate_web(object):
+        """Generates a static HTML file from the sales cached on the disk"""
         print(generate_html())
 
     def _login(username: str = None,

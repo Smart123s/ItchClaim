@@ -41,6 +41,14 @@ itchclaim [--login <username>] download_urls
 Generate a download URL for a game. These links have an expiration date. If the game doesn't require claiming, this command can be run without logging in.
 *Note: this command is unfinished and currently only works for games that are present in the local sale cache.*
 
+### Generate HTML from cached sales
+```bash
+itchclaim generate_web > file.html
+```
+Generates a static HTML file containing a table of all the sales cached on the disk.
+The JSON button tries to access files from `/ItchClaim/data/{id}.json`.
+This command was created for use on the CI, and is not recommended for general users.
+
 
 ## FAQ
 
