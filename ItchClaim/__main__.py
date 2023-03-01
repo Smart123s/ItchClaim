@@ -22,6 +22,8 @@
 
 import os
 from fire import Fire
+
+from .web.web import generate_html
 from . import DiskManager
 from .ItchUser import ItchUser
 from .ItchGame import ItchGame
@@ -107,6 +109,9 @@ class ItchClaim:
         game: ItchGame = ItchGame.load_from_disk(path)
         session = self.user.s if self.user is not None else None
         print(game.downloadable_files(session))
+
+    def generate_web(object):
+        print(generate_html())
 
     def _login(username: str = None,
                password: str = None,
