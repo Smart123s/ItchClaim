@@ -38,6 +38,7 @@ def generate_html():
     with open('ItchClaim/web/template.html', 'r') as f:
         template = Template(f.read())
     games = DiskManager.load_all_games()
+    games.sort(key=lambda a: (a.sale_end.timestamp(), a.name))
     rows: List[str] = []
     for game in games:
         rows.append(ROW_TEMPLATE.substitute(
