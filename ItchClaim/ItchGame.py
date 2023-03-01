@@ -180,4 +180,7 @@ class ItchGame:
     @staticmethod
     def get_games_dir() -> str:
         """Returns default directory for user storage"""
-        return os.path.join(user_data_dir('itchclaim', False), 'games')
+        path = os.path.join(user_data_dir('itchclaim', False), 'games')
+        if not os.path.exists(path):
+            os.makedirs(path, exist_ok=True)
+        return path
