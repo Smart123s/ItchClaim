@@ -29,7 +29,7 @@ DATE_FORMAT = '<span>%Y-%m-%d</span> <span>%H:%M</span>'
 ROW_TEMPLATE = Template("""<tr>
         <td>$name</td>
         <td style="text-align:center">$sale_end</td>
-        <td style="text-align:center" title="Claimable">$claimable</td>
+        <td style="text-align:center" title="$claimable_text">$claimable_icon</td>
         <td><a href="$url" title="URL">&#x1F310;</a></td>
         <td><a href="/ItchClaim/data/$id.json" title="JSON data">&#x1F4DC;</a></td>
     </tr>""")
@@ -43,7 +43,8 @@ def generate_html():
         rows.append(ROW_TEMPLATE.substitute(
             name = game.name,
             sale_end = game.sale_end.strftime(DATE_FORMAT),
-            claimable = '&#x2714;' if game.claimable else '&#x274C;',
+            claimable_text = 'Claimable' if game.claimable else 'Not claimable',
+            claimable_icon = '&#x2714;' if game.claimable else '&#x274C;',
             url = game.url,
             id = game.id,
         ))
