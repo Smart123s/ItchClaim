@@ -53,20 +53,23 @@ def get_all_sales(start: int) -> List[ItchGame]:
         sale_end_raw = soup.find('span', class_='date_format').text
         sale_end = datetime.strptime(sale_end_raw, date_format)
 
-        games_raw = soup.find_all('div', class_="game_cell")
-        for div in games_raw:
-            game = ItchGame.from_div(div)
-            game.sale_id = page
+        try:
+            games_raw = soup.find_all('div', class_="game_cell")
+            for div in games_raw:
+                game = ItchGame.from_div(div)
+                game.sale_id = page
 
-            game.sale_end = sale_end
-            if game.price != 0:
-                print(f'Sale page #{page}: games are not discounted by 100%')
-                break
+                game.sale_end = sale_end
+                if game.price != 0:
+                    print(f'Sale page #{page}: games are not discounted by 100%')
+                    break
 
-            games_num += 1
-            game.save_to_disk()
-        if game.price == 0:
-            print(f'Sale page #{page}: added {len(games_raw)} games')
+                games_num += 1
+                game.save_to_disk()
+            if game.price == 0:
+                print(f'Sale page #{page}: added {len(games_raw)} games')
+        except Exception as e:
+            print(f'Failed to parse sale page {page}. Reason: {e}')
         
         with open(os.path.join(ItchGame.get_games_dir(), 'resume_index.txt'), 'w') as f:
             f.write(str(page))
