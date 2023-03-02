@@ -32,7 +32,6 @@ def get_all_sales(start: int) -> List[ItchGame]:
     page = start
     no_more_games_count = 0
     games_num = 0
-    games = []
     while no_more_games_count < 11:
         r = requests.get(f"https://itch.io/s/{page}",
                 headers={
