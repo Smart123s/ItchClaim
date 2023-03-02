@@ -56,7 +56,7 @@ class ItchClaim:
         game_num = 0
         more_games_exist = True
         while more_games_exist:
-            page = DiskManager.get_online_sale_page(page_num)
+            page = DiskManager.get_sale_feed_page(page_num)
             if page == False:
                 break
             for game in page:

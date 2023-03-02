@@ -23,12 +23,14 @@
 import datetime
 import os
 from typing import List
+from typing_extensions import deprecated
 import requests, json
 from bs4 import BeautifulSoup
 from .ItchGame import ItchGame
 from . import __version__
 
-def get_online_sale_page(page: int) -> List[ItchGame]:
+@deprecated("Only a handful of sales are present on the feed")
+def get_sale_feed_page(page: int) -> List[ItchGame]:
     """Get a page of the sales feed from itch.io, and collect the free ones
     
     Returns:
