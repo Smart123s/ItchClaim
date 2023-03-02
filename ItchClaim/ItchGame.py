@@ -63,6 +63,7 @@ class ItchGame:
             'url': self.url,
             'price': self.price,
             'claimable': self.claimable,
+            'sale_id': self.sale_id,
             'sale_end': int(self.sale_end.timestamp()),
             'cover_image': self.cover_image,
         }
@@ -79,6 +80,7 @@ class ItchGame:
         self.name = data['name']
         self.url = data['url']
         self.price = data['price']
+        self.sale_id = data['sale_id'],
         self.claimable = data['claimable']
         self.sale_end = datetime.fromtimestamp(data['sale_end'])
         self.cover_image = data['cover_image']

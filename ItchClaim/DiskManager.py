@@ -20,13 +20,64 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import datetime
+from datetime import datetime
 import os
 from typing import List
 import requests, json
 from bs4 import BeautifulSoup
 from .ItchGame import ItchGame
 from . import __version__
+
+def get_all_sales(start: int) -> List[ItchGame]:
+    page = start
+    no_more_games_count = 0
+    games_num = 0
+    games = []
+    while no_more_games_count < 11:
+        r = requests.get(f"https://itch.io/s/{page}",
+                headers={
+                    'User-Agent': f'ItchClaim {__version__}',
+                    'Accept-Language': 'en-GB,en;q=0.9',
+                    })
+    
+        if r.status_code == 404:
+            print(f'Sale page #{page}: 404 Not Found ({10 - no_more_games_count} attempts left)')
+            no_more_games_count += 1
+            page += 1
+            continue
+        else:
+            no_more_games_count = 0
+
+        soup = BeautifulSoup(r.text, 'html.parser')
+
+        date_format = '%Y-%m-%dT%H:%M:%SZ'
+        sale_end_raw = soup.find('span', class_='date_format').text
+        sale_end = datetime.strptime(sale_end_raw, date_format)
+
+        games_raw = soup.find_all('div', class_="game_cell")
+        for div in games_raw:
+            game = ItchGame.from_div(div)
+            game.sale_id = page
+
+            game.sale_end = sale_end
+            if game.price != 0:
+                print(f'Sale page #{page}: games are not discounted by 100%')
+                break
+
+            games_num += 1
+            game.save_to_disk()
+        if game.price == 0:
+            print(f'Sale page #{page}: added {len(games_raw)} games')
+        
+        with open(os.path.join(ItchGame.get_games_dir(), 'resume_index.txt'), 'w') as f:
+            f.write(str(page))
+
+        page += 1
+
+    if games_num == 0:
+        print('No new free games found')
+    else:
+        print(f'Execution finished. Added a total of {games_num} games')
 
 def get_sale_feed_page(page: int) -> List[ItchGame]:
     """Get a page of the sales feed from itch.io, and collect the free ones
@@ -55,6 +106,8 @@ def load_all_games():
     """Load all games cached on the disk"""
     l: List[ItchGame] = []
     for file in os.listdir(ItchGame.get_games_dir()):
+        if not file.endswith('.json'):
+            continue
         path = os.path.join(ItchGame.get_games_dir(), file)
         l.append(ItchGame.load_from_disk(path))
     return l
@@ -67,7 +120,7 @@ def remove_expired_sales() -> int:
     """
     i = 0
     for game in load_all_games():
-        if game.sale_end < datetime.datetime.now():
+        if game.sale_end < datetime.now():
             os.remove(game.get_default_game_filename())
             i += 1
     return i
