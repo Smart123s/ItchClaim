@@ -64,6 +64,9 @@ def get_all_sales(start: int) -> List[ItchGame]:
                 if game.price != 0:
                     print(f'Sale page #{page}: games are not discounted by 100%')
                     break
+                elif sale_end.timestamp() < datetime.now().timestamp():
+                    print(f'Sale page #{page}: already expired {sale_end.strftime(date_format)}')
+                    break
 
                 games_num += 1
                 game.save_to_disk()
