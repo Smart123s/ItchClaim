@@ -94,6 +94,7 @@ class ItchGame:
     @cached_property
     def claimable(self) -> bool:
         r = requests.get(self.url)
+        r.encoding = 'utf-8'
         soup = BeautifulSoup(r.text, 'html.parser')
         buy_row = soup.find('div', class_='buy_row')
         if buy_row is None:
@@ -106,6 +107,7 @@ class ItchGame:
     @cached_property
     def sale_end(self) -> datetime:
         r = requests.get(self.url + '/data.json')
+        r.encoding = 'utf-8'
         resp = json.loads(r.text)
         date_str = resp['sale']['end_date']
         date_format = '%Y-%m-%d %H:%M:%S'
@@ -123,6 +125,7 @@ class ItchGame:
         csrf_token = urllib.parse.unquote(s.cookies['itchio_token'])
 
         r = s.post(self.url + '/download_url', json={'csrf_token': csrf_token})
+        r.encoding = 'utf-8'
         resp = json.loads(r.text)
         if 'errors' in resp:
             print(f"ERROR: Failed to get download links for game {self.name} (url: {self.url})")
@@ -130,6 +133,7 @@ class ItchGame:
             return
         download_page = json.loads(r.text)['url']
         r = s.get(download_page)
+        r.encoding = 'utf-8'
         soup = BeautifulSoup(r.text, 'html.parser')
         uploads_div = soup.find_all('div', class_='upload')
         uploads = []
@@ -168,6 +172,7 @@ class ItchGame:
         r = s.post(self.url + f'/file/{id}',
                     json={'csrf_token': csrf_token},
                     params={'source': 'game_download'})
+        r.encoding = 'utf-8'
         download_url= json.loads(r.text)['url']
 
         return {

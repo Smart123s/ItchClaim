@@ -38,6 +38,7 @@ def get_all_sales(start: int) -> List[ItchGame]:
                     'User-Agent': f'ItchClaim {__version__}',
                     'Accept-Language': 'en-GB,en;q=0.9',
                     })
+        r.encoding = 'utf-8'
     
         if r.status_code == 404:
             print(f'Sale page #{page}: 404 Not Found ({10 - no_more_games_count} attempts left)')

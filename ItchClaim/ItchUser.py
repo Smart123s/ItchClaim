@@ -51,6 +51,7 @@ class ItchUser:
             'password': password,
         }
         r = self.s.post('https://itch.io/login', params=data)
+        r.encoding = 'utf-8'
         soup = BeautifulSoup(r.text, 'html.parser')
 
         errors_div = soup.find('div', class_='form_errors')
@@ -69,6 +70,7 @@ class ItchUser:
                 'code': int(totp),
             }
             r = self.s.post(r.url, params=data)
+            r.encoding = 'utf-8'
             soup = BeautifulSoup(r.text, 'html.parser')
 
             errors_div = soup.find('div', class_='form_errors')
@@ -116,12 +118,14 @@ class ItchUser:
     def owns_game_online(self, game: ItchGame):
         """Check on itch.io if the user own's a game"""
         r = self.s.get(game.url, json={'csrf_token': self.csrf_token})
+        r.encoding = 'utf-8'
         soup = BeautifulSoup(r.text, 'html.parser')
         owned_box = soup.find('span', class_='ownership_reason')
         return owned_box != None
 
     def claim_game(self, game: ItchGame):
         r = self.s.post(game.url + '/download_url', json={'csrf_token': self.csrf_token})
+        r.encoding = 'utf-8'
         resp = json.loads(r.text)
         if 'errors' in resp:
             print(f"ERROR: Failed to claim game {game.name} (url: {game.url})")
@@ -129,6 +133,7 @@ class ItchUser:
             return
         download_url = json.loads(r.text)['url']
         r = self.s.get(download_url)
+        r.encoding = 'utf-8'
         soup = BeautifulSoup(r.text, 'html.parser')
         claim_box = soup.find('div', class_='claim_to_download_box warning_box')
         if claim_box == None:
@@ -139,6 +144,7 @@ class ItchUser:
                         data={'csrf_token': self.csrf_token}, 
                         headers={ 'Content-Type': 'application/x-www-form-urlencoded'}
                         )
+        r.encoding = 'utf-8'
         if r.url == 'https://itch.io/':
             if self.owns_game_online(game):
                 self.owned_games.append(game)
@@ -151,6 +157,7 @@ class ItchUser:
     def get_one_library_page(self, page: int):
         """Get one page of the user's library"""
         r = self.s.get(f"https://itch.io/my-purchases?page={page}&format=json")
+        r.encoding = 'utf-8'
         html = json.loads(r.text)['content']
         soup = BeautifulSoup(html, 'html.parser')
         games_raw = soup.find_all('div', class_="game_cell")

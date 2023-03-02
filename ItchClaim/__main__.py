@@ -96,9 +96,10 @@ class ItchClaim:
         session = self.user.s if self.user is not None else None
         print(game.downloadable_files(session))
 
-    def generate_web(object):
+    def generate_web(object, file: str = 'web.html'):
         """Generates a static HTML file from the sales cached on the disk"""
-        print(generate_html())
+        with open(file, 'w', encoding="utf-8") as f:
+            f.write(generate_html())
 
     def _login(username: str = None,
                password: str = None,
