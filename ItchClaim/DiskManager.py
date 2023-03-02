@@ -79,29 +79,6 @@ def get_all_sales(start: int) -> List[ItchGame]:
     else:
         print(f'Execution finished. Added a total of {games_num} games')
 
-def get_sale_feed_page(page: int) -> List[ItchGame]:
-    """Get a page of the sales feed from itch.io, and collect the free ones
-    
-    Returns:
-        List[ItchGame]: The free games present on the page
-    
-    Deprecated:
-        Only a handful of sales are present on the feed
-    """
-    r = requests.get(f"https://itch.io/games/newest/on-sale?page={page}&format=json",
-                    headers={'User-Agent': f'ItchClaim {__version__}'})
-    html = json.loads(r.text)['content']
-    soup = BeautifulSoup(html, 'html.parser')
-    games_raw = soup.find_all('div', class_="game_cell")
-    games = []
-    for div in games_raw:
-        game_parsed = ItchGame.from_div(div)
-        if game_parsed.price == 0:
-            games.append(game_parsed)
-    if len(games) == 0 and json.loads(r.text)["num_items"] == 0:
-        return False
-    return games
-
 def load_all_games():
     """Load all games cached on the disk"""
     l: List[ItchGame] = []
