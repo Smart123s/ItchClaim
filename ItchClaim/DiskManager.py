@@ -48,13 +48,13 @@ def get_all_sales(start: int) -> List[ItchGame]:
         else:
             no_more_games_count = 0
 
-        soup = BeautifulSoup(r.text, 'html.parser')
-
-        date_format = '%Y-%m-%dT%H:%M:%SZ'
-        sale_end_raw = soup.find('span', class_='date_format').text
-        sale_end = datetime.strptime(sale_end_raw, date_format)
-
         try:
+            soup = BeautifulSoup(r.text, 'html.parser')
+
+            date_format = '%Y-%m-%dT%H:%M:%SZ'
+            sale_end_raw = soup.find('span', class_='date_format').text
+            sale_end = datetime.strptime(sale_end_raw, date_format)
+
             games_raw = soup.find_all('div', class_="game_cell")
             for div in games_raw:
                 game = ItchGame.from_div(div)
