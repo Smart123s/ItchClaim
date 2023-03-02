@@ -23,18 +23,19 @@
 import datetime
 import os
 from typing import List
-from typing_extensions import deprecated
 import requests, json
 from bs4 import BeautifulSoup
 from .ItchGame import ItchGame
 from . import __version__
 
-@deprecated("Only a handful of sales are present on the feed")
 def get_sale_feed_page(page: int) -> List[ItchGame]:
     """Get a page of the sales feed from itch.io, and collect the free ones
     
     Returns:
         List[ItchGame]: The free games present on the page
+    
+    Deprecated:
+        Only a handful of sales are present on the feed
     """
     r = requests.get(f"https://itch.io/games/newest/on-sale?page={page}&format=json",
                     headers={'User-Agent': f'ItchClaim {__version__}'})
