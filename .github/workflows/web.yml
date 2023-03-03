@@ -1,9 +1,8 @@
 name: Deploy Web
 
 on:
-  push:
-    branches:
-      - master
+  schedule:
+    - cron:  '18 0,6,12,18 * * *'
 
 jobs:
   # Build job
