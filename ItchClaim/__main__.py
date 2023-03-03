@@ -55,13 +55,13 @@ class ItchClaim:
         num_of_removed_games = DiskManager.remove_expired_sales()
         print(f'Removed {num_of_removed_games} expired sales from disk')
 
-        resume = 89000
+        resume = 83500
         try:
             with open(os.path.join(ItchGame.get_games_dir(), 'resume_index.txt'), 'r') as f:
                 resume = int(f.read())
                 print(f'Resuming sale downloads from {resume}')
         except:
-            print('Resume index not found. Downloading sales from 89000')
+            print('Resume index not found. Downloading sales from 83500')
 
         DiskManager.get_all_sales(resume)
 
