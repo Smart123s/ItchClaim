@@ -61,16 +61,19 @@ def get_all_sales(start: int) -> List[ItchGame]:
                 game.sale_id = page
 
                 game.sale_end = sale_end
+                broken_page = False
                 if game.price != 0:
                     print(f'Sale page #{page}: games are not discounted by 100%')
+                    broken_page = True
                     break
                 elif sale_end.timestamp() < datetime.now().timestamp():
                     print(f'Sale page #{page}: already expired {sale_end.strftime(date_format)}')
+                    broken_page = True
                     break
 
                 games_num += 1
                 game.save_to_disk()
-            if game.price == 0:
+            if not broken_page:
                 print(f'Sale page #{page}: added {len(games_raw)} games')
         except Exception as e:
             print(f'Failed to parse sale page {page}. Reason: {e}')
