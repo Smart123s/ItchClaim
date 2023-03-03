@@ -67,6 +67,9 @@ class ItchClaim:
 
     def claim(self, no_cache_refresh: bool = False):
         """Claim all unowned games. Requires login.
+
+        Args:
+            no_cache_refresh (bool): Claims locally cached games only
         """
         if self.user is None:
             print('You must be logged in')
@@ -90,6 +93,10 @@ class ItchClaim:
     
     def download_urls(self, id: int):
         """Get details about a game, including it's CDN URLs.
+
+        Args:
+            id (int): The ID of the requested game.
+            Note: Currently only supports locally cached games
         """
         path = os.path.join(ItchGame.get_games_dir(), str(id) + '.json')
         game: ItchGame = ItchGame.load_from_disk(path)
@@ -97,7 +104,10 @@ class ItchClaim:
         print(game.downloadable_files(session))
 
     def generate_web(object, file: str = 'web.html'):
-        """Generates a static HTML file from the sales cached on the disk"""
+        """Generates a static HTML file from the sales cached on the disk
+        
+        Args:
+            file (str): Output file location"""
         with open(file, 'w', encoding="utf-8") as f:
             f.write(generate_html())
 
