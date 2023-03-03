@@ -16,9 +16,22 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
+          cache: 'pip'
       - name: Install Dependencies
         run: pip install -r requirements.txt
         shell: bash
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d--%H-%M-%S')"
+      - name: Persist previously collected sales
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-sale-data
+        with:
+          path: web/data/
+          key: ${{ env.cache-name }}-${{ steps.date.outputs.date }}
+          restore-keys: |
+            ${{ env.cache-name }}
       - name: Refresh sales from itch.io
         run: python itchclaim.py refresh_sale_cache --dir web/data/
       - name: Generate index.html
