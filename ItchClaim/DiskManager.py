@@ -30,10 +30,10 @@ from . import __version__
 
 def get_all_sales(start: int) -> List[ItchGame]:
     page = start
-    no_more_games_count = 0
     games_num = 0
-    while no_more_games_count < 11:
-        r = requests.get(f"https://itch.io/s/{page}",
+    while True:
+        sale_url = f"https://itch.io/s/{page}"
+        r = requests.get(sale_url,
                 headers={
                     'User-Agent': f'ItchClaim {__version__}',
                     'Accept-Language': 'en-GB,en;q=0.9',
@@ -41,12 +41,13 @@ def get_all_sales(start: int) -> List[ItchGame]:
         r.encoding = 'utf-8'
     
         if r.status_code == 404:
-            print(f'Sale page #{page}: 404 Not Found ({10 - no_more_games_count} attempts left)')
-            no_more_games_count += 1
-            page += 1
-            continue
-        else:
-            no_more_games_count = 0
+            print(f'Sale page #{page}: 404 Not Found')
+            if r.url == sale_url:
+                print(f'No more sales available at the moment')
+                break
+            else:
+                page += 1
+                continue
 
         try:
             soup = BeautifulSoup(r.text, 'html.parser')
