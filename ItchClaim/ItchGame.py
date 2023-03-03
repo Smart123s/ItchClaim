@@ -31,6 +31,8 @@ from appdirs import user_data_dir
 from . import __version__
 
 class ItchGame:
+    custom_dir: str = None
+
     def __init__(self, id: int):
         self.id = id
 
@@ -187,7 +189,10 @@ class ItchGame:
     @staticmethod
     def get_games_dir() -> str:
         """Returns default directory for user storage"""
-        path = os.path.join(user_data_dir('itchclaim', False), 'games')
+        if ItchGame.custom_dir:
+            path = ItchGame.custom_dir
+        else:
+            path = os.path.join(user_data_dir('itchclaim', False), 'games')
         if not os.path.exists(path):
             os.makedirs(path, exist_ok=True)
         return path

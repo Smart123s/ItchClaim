@@ -45,3 +45,5 @@ venv
 .mypy_cache
 
 # Source: https://github.com/pyauth/pyotp/blob/6568c1a83af8e0229f3c4b28d03552d601e2b7fe/.gitignore
+
+web/

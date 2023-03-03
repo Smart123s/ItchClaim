@@ -32,17 +32,26 @@ class ItchClaim:
     def __init__(self,
                 login: str = None,
                 password: str = None,
-                totp: str = None):
+                totp: str = None,
+                dir: str = None):
+        """Automatically claim free games from itch.io
+
+        Args:
+            dir (str): Specify the game cache directory
+        """
+
+        ItchGame.custom_dir = dir
+
         if login is not None:
             self.user = ItchClaim._login(login, password, totp)
         else:
             self.user = None
 
-    def refresh_sale_cache(object):
+    def refresh_sale_cache(object, dir: str = None):
         """Refresh the locally stored cache about game sales
         Deletes expired sales from the disk.
-        Opens itch.io and downloads sales posted after the last saved one.
-        """
+        Opens itch.io and downloads sales posted after the last saved one."""
+
         num_of_removed_games = DiskManager.remove_expired_sales()
         print(f'Removed {num_of_removed_games} expired sales from disk')
 
