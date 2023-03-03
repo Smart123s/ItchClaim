@@ -1,6 +1,7 @@
 name: Deploy Web
 
 on:
+  workflow_dispatch:
   schedule:
     - cron:  '18 0,6,12,18 * * *'
 
