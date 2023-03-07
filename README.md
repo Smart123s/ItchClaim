@@ -13,14 +13,14 @@ itchclaim --login <username> claim
 ```
 This command logs in the user (asks for password if it's ran for the first time), refreshes the list of currently free games, and start claiming the unowned ones.
 
-#### Logging in
+## Advanced Commands
+
+### Logging in (via flags)
 If you don't have access to an interactive shell, you can provide you password via flags too.
 
 ```bash
 itchclaim --login <username> --password <password> --totp <2FA code or secret>
 ```
-
-## Advanced Commands
 
 ### Refresh Library
 ```bash
