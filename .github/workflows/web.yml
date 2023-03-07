@@ -25,7 +25,7 @@ jobs:
         shell: bash
       - name: Get current date
         id: date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d--%H-%M-%S')"
+        run: echo "date=$(date +'%Y-%m-%d--%H-%M-%S')" >> $GITHUB_OUTPUT
       - name: Persist previously collected sales
         uses: actions/cache@v3
         env:
