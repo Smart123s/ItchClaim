@@ -4,6 +4,9 @@ on:
   workflow_dispatch:
   schedule:
     - cron:  '18 0,6,12,18 * * *'
+  push:
+    branches:
+      - master
 
 jobs:
   # Build job
