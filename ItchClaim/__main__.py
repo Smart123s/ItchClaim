@@ -88,8 +88,7 @@ class ItchClaim:
                 print('User\'s library not found in cache. Downloading it now')
                 self.user.reload_owned_games()
                 self.user.save_session()
-            print('Looking for new free games')
-            self.refresh_sale_cache()
+            self.refresh_from_remote_cache()
         print('Claiming games')
         claimed_games = 0
         for game in DiskManager.load_all_games():
