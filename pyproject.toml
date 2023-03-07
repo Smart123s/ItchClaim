@@ -32,6 +32,9 @@ classifiers = [
 [project.scripts]
 itchclaim = "ItchClaim.__main__:main"
 
+[tool.setuptools]
+packages = ["ItchClaim"]
+
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
 version = {attr = "ItchClaim.__init__.__version__"}
