@@ -39,6 +39,8 @@ jobs:
         run: python itchclaim.py refresh_sale_cache --dir web/data/
       - name: Generate index.html
         run: python itchclaim.py generate_web --dir web/data/ --file web/index.html
+      - name: Generate concatenated JSON
+        run: sh ./concatenate_jsons.sh > web/index.json
       - name: Upload Page
         uses: actions/upload-pages-artifact@v1
         with:
