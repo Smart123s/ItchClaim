@@ -99,6 +99,16 @@ def load_all_games():
         l.append(ItchGame.load_from_disk(path))
     return l
 
+def refresh_from_remote_cache(url: str):
+    r = requests.get(url)
+    games_raw = json.loads(r.text)
+    for game_json in games_raw:
+        game = ItchGame(game_json['id'])
+        if not os.path.exists(game.get_default_game_filename()):
+            with open(game.get_default_game_filename(), 'w') as f:
+                f.write(json.dumps(game_json))
+                print(f'Saved game {game_json["name"]}')
+
 def remove_expired_sales() -> int:
     """Removes expired sales from the disk cache
     
