@@ -31,7 +31,7 @@ ROW_TEMPLATE = Template("""<tr>
         <td style="text-align:center">$sale_end</td>
         <td style="text-align:center" title="$claimable_text">$claimable_icon</td>
         <td><a href="$url" title="URL">&#x1F310;</a></td>
-        <td><a href="/ItchClaim/data/$id.json" title="JSON data">&#x1F4DC;</a></td>
+        <td><a href="./data/$id.json" title="JSON data">&#x1F4DC;</a></td>
     </tr>""")
 
 def generate_html():
