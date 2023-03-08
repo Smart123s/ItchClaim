@@ -64,4 +64,32 @@ This command was created for use on the CI, and is not recommended for general u
 This tools is not affiliated with itch.io. Using it may not be allowed, and may result in your account getting suspended or banned. Use at your own risk.
 
 ### Can itch.io detect that I'm using this tool?
-Yes. We explicitly let itch.io know that use the the requests were sent by this tool, using the `user-agent` header.
+Yes. We explicitly let itch.io know that use the the requests were sent by this tool, using the `user-agent` header. Itch.io doesn't block using non-browser user agents (like some big corporations do), so I think that they deserve to know how their services are being used. If they want to block ItchClaim, blocking this user-agent makes it simple for them. This way, they won't have to implement additional anti-bot technologies, which would make both our and itch.io's life worse.
+
+### Why sales are not downloaded directly from itch.io?
+The initial plan was to parse https://itch.io/games/on-sale on each run (it was even implemented in [here](https://github.com/Smart123s/ItchClaim/blob/00ddfa3dfe57c747f09486fd7791f0e1d57347f3/ItchClaim/DiskManager.py#L31-L49)), however, it turns out that only a handful of sales are listed there.
+Luckily for us, details about every sale are published at https://itch.io/s/<id\>, where id is a sequentially incremented number. However, downloading data about every single sale published on itch.io generates a lot of load on their servers. To easen the load generated on itch.io by this tool, I've decide to do this scraping only once, on a remote server, and make the data publicly available.
+
+### Can ItchClaim developers see who has access the sale data?
+No, every file on the website is hosted by GitHub via their Pages service, and no data is made available to the developers.
+
+## Recreating the website locally
+
+### Pre-Generated Artifacts
+All the files available on the website are also published as artifacts under each actions run in the actions tab.
+
+### Generate site manually
+The following 3 commands are executed by [actions](https://github.com/Smart123s/ItchClaim/blob/864a25315466f837aa589e44f7a0f8731254a44f/.github/workflows/web.yml#L38-L43):
+
+```bash
+# Refresh sales from itch.io
+python itchclaim.py refresh_sale_cache --dir web/data/
+
+# Generate index.html
+python itchclaim.py generate_web --dir web/data/ --file web/index.html
+
+# Generate concatenated JSON
+run: sh ./concatenate_jsons.sh > web/index.json
+```
+
+The contents of the static site will be placed into the `web/` directory.
