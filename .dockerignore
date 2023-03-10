@@ -1,0 +1,53 @@
+# Reminder:
+# - A leading slash means the pattern is anchored at the root.
+# - No leading slash means the pattern matches at any depth.
+
+# Python files
+*.pyc
+__pycache__/
+.tox/
+*.egg-info/
+/build/
+/dist/
+/.eggs/
+
+# Sphinx documentation
+/docs/_build/
+
+# IDE project files
+/.pydevproject
+
+# vim python-mode plugin
+/.ropeproject
+
+# IntelliJ IDEA / PyCharm project files
+/.idea
+/*.iml
+
+# VSCode files
+.vscode/
+
+# JS/node/npm/web dev files
+node_modules
+npm-debug.log
+
+# OS X metadata files
+.DS_Store
+
+# Python coverage
+.coverage
+htmlcov
+
+# Virtual environments
+venv
+
+# Type checking
+.mypy_cache
+
+# Source: https://github.com/pyauth/pyotp/blob/6568c1a83af8e0229f3c4b28d03552d601e2b7fe/.gitignore
+
+/web/
+
+Dockerfile
+
+/.github
