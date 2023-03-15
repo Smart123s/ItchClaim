@@ -34,11 +34,10 @@ ROW_TEMPLATE = Template("""<tr>
         <td><a href="./data/$id.json" title="JSON data">&#x1F4DC;</a></td>
     </tr>""")
 
-def generate_html():
+def generate_html(games):
     with open('ItchClaim/web/template.html', 'r') as f:
         template = Template(f.read())
-    games = DiskManager.load_all_games()
-    games.sort(key=lambda a: (-1*a.sale_id, a.name))
+    games.sort(key=lambda a: (-1*a.sales[-1].id, a.name))
     rows: List[str] = []
     for game in games:
         rows.append(ROW_TEMPLATE.substitute(

@@ -66,7 +66,7 @@ class ItchGame:
             'url': self.url,
             'price': self.price,
             'claimable': self.claimable,
-            'sales': [ sale.serialize() for sale in self.sales ],
+            'sales': Sale.serialize_list(self.sales),
             'cover_image': self.cover_image,
         }
         with open(self.get_default_game_filename(), 'w') as f:
@@ -195,6 +195,16 @@ class ItchGame:
             'platforms': platforms,
             'url': download_url,
         }
+
+    def serialize_min(self):
+        """Returns a serialized object containing minimal information about the object"""
+        return {
+            'id': self.id,
+            'name': self.name,
+            'url': self.url,
+            'claimable': self.claimable,
+            'sales': Sale.serialize_list(self.sales),
+        }
     
     @staticmethod
     def get_games_dir() -> str:
@@ -226,13 +236,18 @@ class Sale:
 
 
     @classmethod
-    def from_dict(self, dict):
+    def from_dict(self, dict: dict):
         id = dict['id']
         end = datetime.fromtimestamp(dict['end'])
         sale: Sale = Sale(id, end)
         if 'start' in dict:
             sale.start = datetime.fromtimestamp(dict['start'])
         return sale
+
+    
+    @staticmethod
+    def serialize_list(list: List):
+        return [ sale.serialize() for sale in list ]
 
 
     @property

@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import json
 import os
 from fire import Fire
 
@@ -48,13 +49,8 @@ class ItchClaim:
             self.user = None
 
     def refresh_sale_cache(object, dir: str = None):
-        """Refresh the locally stored cache about game sales
-        Deletes expired sales from the disk.
+        """Refresh the cache about game sales
         Opens itch.io and downloads sales posted after the last saved one."""
-
-        num_of_removed_games = DiskManager.remove_expired_sales()
-        print(f'Removed {num_of_removed_games} expired sales from disk')
-
         resume = 83500
         try:
             with open(os.path.join(ItchGame.get_games_dir(), 'resume_index.txt'), 'r') as f:
@@ -111,13 +107,23 @@ class ItchClaim:
         session = self.user.s if self.user is not None else None
         print(game.downloadable_files(session))
 
-    def generate_web(object, file: str = 'web.html'):
-        """Generates a static HTML file from the sales cached on the disk
+    def generate_web(object, web_dir: str = 'web'):
+        """Generates files that can be served as a static website
         
         Args:
-            file (str): Output file location"""
-        with open(file, 'w', encoding="utf-8") as f:
-            f.write(generate_html())
+            web_dir (str): Output directory"""
+
+        os.makedirs(os.path.join(web_dir, 'api'), exist_ok=True)
+
+        games = DiskManager.load_all_games()
+        active_sales = list(filter(lambda game: game.is_sale_active, games))
+        active_sales_min = [ game.serialize_min() for game in active_sales ]
+        with open(os.path.join(web_dir, 'api', 'active.json'), 'w', encoding="utf-8") as f:
+            f.write(json.dumps(active_sales_min))
+
+        # Create HTML file
+        with open(os.path.join(web_dir, 'index.html'), 'w', encoding="utf-8") as f:
+            f.write(generate_html(active_sales))
 
     def refresh_from_remote_cache(self, url: str = 'https://Smart123s.github.io/ItchClaim/index.json'):
         """Download collected sales from remote URL.

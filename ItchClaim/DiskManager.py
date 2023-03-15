@@ -114,16 +114,3 @@ def refresh_from_remote_cache(url: str):
             with open(game.get_default_game_filename(), 'w') as f:
                 f.write(json.dumps(game_json))
                 print(f'Saved game {game_json["name"]}')
-
-def remove_expired_sales() -> int:
-    """Removes expired sales from the disk cache
-    
-    Returns:
-        int: The number of games removed
-    """
-    i = 0
-    for game in load_all_games():
-        if game.sale_end < datetime.now():
-            os.remove(game.get_default_game_filename())
-            i += 1
-    return i

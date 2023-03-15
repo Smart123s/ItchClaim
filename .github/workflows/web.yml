@@ -38,7 +38,7 @@ jobs:
       - name: Refresh sales from itch.io
         run: python itchclaim.py refresh_sale_cache --dir web/data/
       - name: Generate index.html
-        run: python itchclaim.py generate_web --dir web/data/ --file web/index.html
+        run: python itchclaim.py generate_web --dir web/data/ --web_dir web/
       - name: Generate concatenated JSON
         run: sh ./concatenate_jsons.sh > web/index.json
       - name: Upload Page
