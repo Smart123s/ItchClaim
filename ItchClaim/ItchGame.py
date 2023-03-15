@@ -46,7 +46,10 @@ class ItchGame:
         self.name = a.text
         self.url = a.attrs['href']
 
-        self.cover_image = div.find('div', class_='game_thumb').find('img').attrs['data-lazy_src']
+        try:
+            self.cover_image = div.find('div', class_='game_thumb').find('img').attrs['data-lazy_src']
+        except:
+            self.cover_image = None
 
         price_element = div.find('div', attrs={'class': 'price_value'})
         # Some elements don't have a price defined
