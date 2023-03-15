@@ -56,15 +56,20 @@ def get_all_sales(start: int) -> List[ItchGame]:
             sale_date_raw = soup.find('span', class_='date_format').text
             sale_date = datetime.strptime(sale_date_raw, date_format)
 
+            # Is the date shown on the site a start or an end?
             not_active_div = soup.find('div', class_="not_active_notification")
-            if 'Come back ' in not_active_div.text:
+            if not_active_div and 'Come back ' in not_active_div.text:
                 current_sale = Sale(page, start=sale_date)
             else:
-                current_sale = Sale(page, start=sale_date)
+                current_sale = Sale(page, end=sale_date)
 
             games_raw = soup.find_all('div', class_="game_cell")
             for div in games_raw:
                 game: ItchGame = ItchGame.from_div(div)
+
+                # If the sale is not active, we can't check if it's claimable
+                if not current_sale.is_active:
+                    game.claimable = None
 
                 # load previously saved sales
                 if os.path.exists(game.get_default_game_filename()):

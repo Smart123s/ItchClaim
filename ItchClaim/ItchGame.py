@@ -83,7 +83,8 @@ class ItchGame:
         self.url = data['url']
         self.price = data['price']
         self.sales = [ Sale.from_dict(sale) for sale in data['sales'] ]
-        self.claimable = data['claimable']
+        if data['claimable'] is not None:
+            self.claimable = data['claimable']
         self.cover_image = data['cover_image']
         return self
 
@@ -94,6 +95,8 @@ class ItchGame:
 
     @cached_property
     def claimable(self) -> bool:
+        if not self.sales[-1].is_active:
+            return None
         r = requests.get(self.url)
         r.encoding = 'utf-8'
         soup = BeautifulSoup(r.text, 'html.parser')
@@ -102,6 +105,8 @@ class ItchGame:
             # Game is probably WebGL or HTML5 only
             return False
         buy_box = buy_row.find('a', class_='button buy_btn')
+        if 'Buy Now' in buy_box.text:
+            return None
         claimable = buy_box.text == 'Download or claim'
         return claimable
     
