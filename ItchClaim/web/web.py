@@ -21,6 +21,8 @@
 # SOFTWARE.
 
 from datetime import datetime
+import json
+import os
 from string import Template
 from typing import List
 
@@ -36,23 +38,42 @@ ROW_TEMPLATE = Template("""<tr>
         <td><a href="./data/$id.json" title="JSON data">&#x1F4DC;</a></td>
     </tr>""")
 
-def generate_html(games: List[ItchGame]):
+def generate_web(games: List[ItchGame], web_dir: str):
     with open('ItchClaim/web/template.html', 'r') as f:
         template = Template(f.read())
     games.sort(key=lambda a: (-1*a.sales[-1].id, a.name))
 
-    # filter active sales
+    # ======= HTML =======
+
     active_sales = list(filter(lambda game: game.is_sale_active, games))
     active_sales_rows = generate_rows(active_sales)
 
     upcoming_sales = list(filter(lambda game: game.is_sale_upcoming, games))
     upcoming_sales_rows = generate_rows(upcoming_sales)
 
-    return template.substitute(
+    html = template.substitute(
             active_sales_rows = '\n'.join(active_sales_rows),
             upcoming_sales_rows = '\n'.join(upcoming_sales_rows),
             last_update = datetime.now().strftime(DATE_FORMAT),
         )
+
+    with open(os.path.join(web_dir, 'index.html'), 'w', encoding="utf-8") as f:
+        f.write(html)
+
+    # ======= JSON (active sales) =======
+    active_sales_min = [ game.serialize_min() for game in active_sales ]
+    with open(os.path.join(web_dir, 'api', 'active.json'), 'w', encoding="utf-8") as f:
+        f.write(json.dumps(active_sales_min))
+
+    # ======= JSON (upcoming sales) =======
+    upcoming_sales_min = [ game.serialize_min() for game in upcoming_sales ]
+    with open(os.path.join(web_dir, 'api', 'upcoming.json'), 'w', encoding="utf-8") as f:
+        f.write(json.dumps(upcoming_sales_min))
+
+    # ======= JSON (all sales) =======
+    all_min = [ game.serialize_min() for game in games ]
+    with open(os.path.join(web_dir, 'api', 'all.json'), 'w', encoding="utf-8") as f:
+        f.write(json.dumps(all_min))
 
 def generate_rows(games: List[ItchGame]) -> List[str]:
     rows: List[str] = []

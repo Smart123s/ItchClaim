@@ -24,7 +24,7 @@ import json
 import os
 from fire import Fire
 
-from .web.web import generate_html
+from .web.web import generate_web
 from . import DiskManager
 from .ItchUser import ItchUser
 from .ItchGame import ItchGame
@@ -116,14 +116,7 @@ class ItchClaim:
         os.makedirs(os.path.join(web_dir, 'api'), exist_ok=True)
 
         games = DiskManager.load_all_games()
-        active_sales = list(filter(lambda game: game.is_sale_active, games))
-        active_sales_min = [ game.serialize_min() for game in active_sales ]
-        with open(os.path.join(web_dir, 'api', 'active.json'), 'w', encoding="utf-8") as f:
-            f.write(json.dumps(active_sales_min))
-
-        # Create HTML file
-        with open(os.path.join(web_dir, 'index.html'), 'w', encoding="utf-8") as f:
-            f.write(generate_html(games))
+        generate_web(games, web_dir)
 
     def refresh_from_remote_cache(self, url: str = 'https://Smart123s.github.io/ItchClaim/index.json'):
         """Download collected sales from remote URL.
