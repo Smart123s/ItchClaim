@@ -124,7 +124,7 @@ class ItchGame:
 
     @property
     def is_first_sale(self) -> bool:
-        return len(self.sales == 1)
+        return len(self.sales) == 1
 
     def sale_end_online(self) -> datetime:
         r = requests.get(self.url + '/data.json')
