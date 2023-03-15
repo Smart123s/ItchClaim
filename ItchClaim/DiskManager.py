@@ -25,7 +25,7 @@ import os
 from typing import List
 import requests, json
 from bs4 import BeautifulSoup
-from .ItchGame import ItchGame
+from .ItchGame import ItchGame, Sale
 from . import __version__
 
 def get_all_sales(start: int) -> List[ItchGame]:
@@ -58,10 +58,19 @@ def get_all_sales(start: int) -> List[ItchGame]:
 
             games_raw = soup.find_all('div', class_="game_cell")
             for div in games_raw:
-                game = ItchGame.from_div(div)
-                game.sale_id = page
+                current_sale = Sale(page, sale_end)
+                game: ItchGame = ItchGame.from_div(div)
 
-                game.sale_end = sale_end
+                # load previously saved sales
+                if os.path.exists(game.get_default_game_filename()):
+                    disk_game: ItchGame = ItchGame.load_from_disk(game.get_default_game_filename())
+                    game.sales = disk_game.sales
+                    if game.sales[-1].id == page:
+                        print(f'Sale {page} has been already saved for game {game.name} (wrong resume index?)')
+                        continue
+
+                game.sales.append(current_sale)
+                
                 broken_page = False
                 if game.price != 0:
                     print(f'Sale page #{page}: games are not discounted by 100%')

@@ -35,6 +35,7 @@ class ItchGame:
 
     def __init__(self, id: int):
         self.id = id
+        self.sales: List[Sale] = []
 
     @staticmethod
     def from_div(div: Tag) -> Self:
@@ -65,8 +66,7 @@ class ItchGame:
             'url': self.url,
             'price': self.price,
             'claimable': self.claimable,
-            'sale_id': self.sale_id,
-            'sale_end': int(self.sale_end.timestamp()),
+            'sales': [ sale.serialize() for sale in self.sales ],
             'cover_image': self.cover_image,
         }
         with open(self.get_default_game_filename(), 'w') as f:
@@ -82,9 +82,8 @@ class ItchGame:
         self.name = data['name']
         self.url = data['url']
         self.price = data['price']
-        self.sale_id = data['sale_id'],
+        self.sales = [ Sale.from_dict(sale) for sale in data['sales'] ]
         self.claimable = data['claimable']
-        self.sale_end = datetime.fromtimestamp(data['sale_end'])
         self.cover_image = data['cover_image']
         return self
 
@@ -105,9 +104,20 @@ class ItchGame:
         buy_box = buy_row.find('a', class_='button buy_btn')
         claimable = buy_box.text == 'Download or claim'
         return claimable
-
-    @cached_property
+    
+    @property
     def sale_end(self) -> datetime:
+        return self.sales[-1].end
+
+    @property
+    def is_sale_active(self) -> bool:
+        return self.sales[-1].is_active
+
+    @property
+    def is_first_sale(self) -> bool:
+        return len(self.sales == 1)
+
+    def sale_end_online(self) -> datetime:
         r = requests.get(self.url + '/data.json')
         r.encoding = 'utf-8'
         resp = json.loads(r.text)
@@ -196,3 +206,37 @@ class ItchGame:
         if not os.path.exists(path):
             os.makedirs(path, exist_ok=True)
         return path
+
+class Sale:
+    def __init__(self, id: int, end: datetime, start: datetime = None, first: bool = False) -> None:
+        self.id: int = id
+        self.end: datetime = end
+        self.start: datetime = start
+        self.first: bool = first
+
+
+    def serialize(self):
+        dict = {
+            'id': self.id,
+            'end': int(self.end.timestamp()),
+        }
+        if self.start:
+            dict['start'] = int(self.start.timestamp())
+        return dict
+
+
+    @classmethod
+    def from_dict(self, dict):
+        id = dict['id']
+        end = datetime.fromtimestamp(dict['end'])
+        sale: Sale = Sale(id, end)
+        if 'start' in dict:
+            sale.start = datetime.fromtimestamp(dict['start'])
+        return sale
+
+
+    @property
+    def is_active(self):
+        if self.start and self.start < datetime.now():
+            return False
+        return datetime.now() < self.end
