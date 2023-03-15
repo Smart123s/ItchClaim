@@ -42,7 +42,7 @@ def get_all_sales(start: int) -> List[ItchGame]:
     
         if r.status_code == 404:
             print(f'Sale page #{page}: 404 Not Found')
-            if r.url == sale_url:
+            if r.url == sale_url and page > 90000:
                 print(f'No more sales available at the moment')
                 break
             else:
