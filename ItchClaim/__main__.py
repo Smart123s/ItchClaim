@@ -48,7 +48,7 @@ class ItchClaim:
         else:
             self.user = None
 
-    def refresh_sale_cache(object, dir: str = None):
+    def refresh_sale_cache(object):
         """Refresh the cache about game sales
         Opens itch.io and downloads sales posted after the last saved one."""
         resume = 1
