@@ -218,7 +218,7 @@ class ItchGame:
         return path
 
 class Sale:
-    def __init__(self, id: int, end: datetime, start: datetime = None, first: bool = False) -> None:
+    def __init__(self, id: int, end: datetime = None, start: datetime = None, first: bool = False) -> None:
         self.id: int = id
         self.end: datetime = end
         self.start: datetime = start
@@ -228,20 +228,22 @@ class Sale:
     def serialize(self):
         dict = {
             'id': self.id,
-            'end': int(self.end.timestamp()),
         }
         if self.start:
             dict['start'] = int(self.start.timestamp())
+        if self.end:
+            dict['end'] = int(self.end.timestamp())
         return dict
 
 
     @classmethod
     def from_dict(self, dict: dict):
         id = dict['id']
-        end = datetime.fromtimestamp(dict['end'])
-        sale: Sale = Sale(id, end)
+        sale: Sale = Sale(id)
         if 'start' in dict:
             sale.start = datetime.fromtimestamp(dict['start'])
+        if 'end' in dict:
+            sale.end = datetime.fromtimestamp(dict['end'])
         return sale
 
     
@@ -252,6 +254,8 @@ class Sale:
 
     @property
     def is_active(self):
-        if self.start and self.start < datetime.now():
+        if self.start and  datetime.now() < self.start:
             return False
-        return datetime.now() < self.end
+        if self.end and datetime.now() > self.end:
+            return False
+        return True

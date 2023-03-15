@@ -53,12 +53,17 @@ def get_all_sales(start: int) -> List[ItchGame]:
             soup = BeautifulSoup(r.text, 'html.parser')
 
             date_format = '%Y-%m-%dT%H:%M:%SZ'
-            sale_end_raw = soup.find('span', class_='date_format').text
-            sale_end = datetime.strptime(sale_end_raw, date_format)
+            sale_date_raw = soup.find('span', class_='date_format').text
+            sale_date = datetime.strptime(sale_date_raw, date_format)
+
+            not_active_div = soup.find('div', class_="not_active_notification")
+            if 'Come back ' in not_active_div.text:
+                current_sale = Sale(page, start=sale_date)
+            else:
+                current_sale = Sale(page, start=sale_date)
 
             games_raw = soup.find_all('div', class_="game_cell")
             for div in games_raw:
-                current_sale = Sale(page, sale_end)
                 game: ItchGame = ItchGame.from_div(div)
 
                 # load previously saved sales
@@ -79,7 +84,7 @@ def get_all_sales(start: int) -> List[ItchGame]:
                 game.save_to_disk()
 
             if game.price == 0:
-                expired = sale_end.timestamp() < datetime.now().timestamp()
+                expired = sale_date.timestamp() < datetime.now().timestamp()
                 expired_str = '(expired)' if expired else ''
                 print(f'Sale page #{page}: added {len(games_raw)} games', expired_str)
         except Exception as e:
