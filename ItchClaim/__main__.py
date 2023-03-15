@@ -51,7 +51,7 @@ class ItchClaim:
     def refresh_sale_cache(object, dir: str = None):
         """Refresh the cache about game sales
         Opens itch.io and downloads sales posted after the last saved one."""
-        resume = 91000
+        resume = 1
         try:
             with open(os.path.join(ItchGame.get_games_dir(), 'resume_index.txt'), 'r') as f:
                 resume = int(f.read())
