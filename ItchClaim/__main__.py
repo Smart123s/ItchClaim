@@ -70,24 +70,25 @@ class ItchClaim:
         self.user.reload_owned_games()
         self.user.save_session()
 
-    def claim(self, no_cache_refresh: bool = False):
+    def claim(self, url: str = 'https://itchclaim.tmbpeter.com/api/active.json'):
         """Claim all unowned games. Requires login.
-
         Args:
-            no_cache_refresh (bool): Claims locally cached games only
-        """
+            url (str): The URL to download the file from"""
+
         if self.user is None:
             print('You must be logged in')
             return
-        if not no_cache_refresh:
-            if len(self.user.owned_games) == 0:
-                print('User\'s library not found in cache. Downloading it now')
-                self.user.reload_owned_games()
-                self.user.save_session()
-            self.refresh_from_remote_cache()
+        if len(self.user.owned_games) == 0:
+            print('User\'s library not found in cache. Downloading it now')
+            self.user.reload_owned_games()
+            self.user.save_session()
+
+        print(f'Downloading free games list from {url}')
+        games = DiskManager.download_from_remote_cache(url)
+
         print('Claiming games')
         claimed_games = 0
-        for game in DiskManager.load_all_games():
+        for game in games:
             if not self.user.owns_game(game) and game.claimable:
                 self.user.claim_game(game)
                 self.user.save_session()
@@ -117,19 +118,6 @@ class ItchClaim:
 
         games = DiskManager.load_all_games()
         generate_web(games, web_dir)
-
-    def refresh_from_remote_cache(self, url: str = 'https://Smart123s.github.io/ItchClaim/index.json'):
-        """Download collected sales from remote URL.
-        Deletes expired sales from the disk.
-        
-        Args:
-            url (str): The URL to download the file from"""
-
-        num_of_removed_games = DiskManager.remove_expired_sales()
-        print(f'Removed {num_of_removed_games} expired sales from disk')
-
-        print(f'Downloading games from {url}')
-        DiskManager.refresh_from_remote_cache(url)
 
     def _login(username: str = None,
                password: str = None,
