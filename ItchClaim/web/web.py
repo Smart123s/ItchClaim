@@ -30,6 +30,7 @@ DATE_FORMAT = '<span>%Y-%m-%d</span> <span>%H:%M</span>'
 ROW_TEMPLATE = Template("""<tr>
         <td>$name</td>
         <td style="text-align:center">$sale_date</td>
+        <td style="text-align:center" title="First sale">$first_sale</td>
         <td style="text-align:center" title="$claimable_text">$claimable_icon</td>
         <td><a href="$url" title="URL">&#x1F310;</a></td>
         <td><a href="./data/$id.json" title="JSON data">&#x1F4DC;</a></td>
@@ -71,6 +72,7 @@ def generate_rows(games: List[ItchGame]) -> List[str]:
         rows.append(ROW_TEMPLATE.substitute(
             name = game.name,
             sale_date = sale_date.strftime(DATE_FORMAT),
+            first_sale = '&#x1F947;' if game.is_first_sale else '',
             claimable_text = claimable_text,
             claimable_icon = claimable_icon,
             url = game.url,
