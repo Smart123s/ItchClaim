@@ -23,32 +23,57 @@
 from datetime import datetime
 from string import Template
 from typing import List
-from .. import DiskManager
+
+from ..ItchGame import ItchGame
 
 DATE_FORMAT = '<span>%Y-%m-%d</span> <span>%H:%M</span>'
 ROW_TEMPLATE = Template("""<tr>
         <td>$name</td>
-        <td style="text-align:center">$sale_end</td>
+        <td style="text-align:center">$sale_date</td>
         <td style="text-align:center" title="$claimable_text">$claimable_icon</td>
         <td><a href="$url" title="URL">&#x1F310;</a></td>
         <td><a href="./data/$id.json" title="JSON data">&#x1F4DC;</a></td>
     </tr>""")
 
-def generate_html(games):
+def generate_html(games: List[ItchGame]):
     with open('ItchClaim/web/template.html', 'r') as f:
         template = Template(f.read())
     games.sort(key=lambda a: (-1*a.sales[-1].id, a.name))
+
+    # filter active sales
+    active_sales = list(filter(lambda game: game.is_sale_active, games))
+    active_sales_rows = generate_rows(active_sales)
+
+    upcoming_sales = list(filter(lambda game: game.is_sale_upcoming, games))
+    upcoming_sales_rows = generate_rows(upcoming_sales)
+
+    return template.substitute(
+            active_sales_rows = '\n'.join(active_sales_rows),
+            upcoming_sales_rows = '\n'.join(upcoming_sales_rows),
+            last_update = datetime.now().strftime(DATE_FORMAT),
+        )
+
+def generate_rows(games: List[ItchGame]) -> List[str]:
     rows: List[str] = []
     for game in games:
+        if game.claimable == False:
+            claimable_text = 'Not claimable'
+            claimable_icon = '&#x274C;'
+        elif game.claimable == True:
+            claimable_text = 'claimable'
+            claimable_icon = '&#x2714;'
+        else:
+            claimable_text = 'Unknown'
+            claimable_icon = '&#x1F551;'
+        
+        sale_date = game.sales[-1].end if game.sales[-1].end else game.sales[-1].start
+
         rows.append(ROW_TEMPLATE.substitute(
             name = game.name,
-            sale_end = game.sale_end.strftime(DATE_FORMAT),
-            claimable_text = 'Claimable' if game.claimable else 'Not claimable',
-            claimable_icon = '&#x2714;' if game.claimable else '&#x274C;',
+            sale_date = sale_date.strftime(DATE_FORMAT),
+            claimable_text = claimable_text,
+            claimable_icon = claimable_icon,
             url = game.url,
             id = game.id,
         ))
-    return template.substitute(
-            rows = '\n'.join(rows),
-            last_update = datetime.now().strftime(DATE_FORMAT),
-        )
+    return rows

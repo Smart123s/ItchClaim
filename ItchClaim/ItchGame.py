@@ -119,6 +119,10 @@ class ItchGame:
         return self.sales[-1].is_active
 
     @property
+    def is_sale_upcoming(self) -> bool:
+        return self.sales[-1].is_upcoming
+
+    @property
     def is_first_sale(self) -> bool:
         return len(self.sales == 1)
 
@@ -259,8 +263,12 @@ class Sale:
 
     @property
     def is_active(self):
-        if self.start and  datetime.now() < self.start:
+        if self.start and datetime.now() < self.start:
             return False
         if self.end and datetime.now() > self.end:
             return False
         return True
+
+    @property
+    def is_upcoming(self):
+        return self.start and datetime.now() < self.start

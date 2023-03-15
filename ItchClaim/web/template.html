@@ -43,7 +43,18 @@
                         <th><!--URL--></th>
                         <th><!--JSON--></th>
                     </tr>
-                    $rows
+                    $active_sales_rows
+                </table>
+                <h2>Upcoming sales</h2>
+                <table>
+                    <tr>
+                        <th>Name</th>
+                        <th>Sale start (UTC)</th>
+                        <th><!--Claimable--></th>
+                        <th><!--URL--></th>
+                        <th><!--JSON--></th>
+                    </tr>
+                    $upcoming_sales_rows
                 </table>
             </div>
             <div class="descriptions">
@@ -55,6 +66,7 @@
                 <p>&#x1F4DC;: Details about the game in JSON format</p>
                 <p>&#x2714;: Claimable game</p>
                 <p>&#x274C;: Download only game</p>
+                <p>&#x1F551;: Claimability unknown</p>
 
                 <h2>Developers</h2>
                 <p style="margin-top: 0px;">&#128209; <span><a href="./index.json">View table as JSON</a></span></p>

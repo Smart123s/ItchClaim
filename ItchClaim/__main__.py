@@ -123,7 +123,7 @@ class ItchClaim:
 
         # Create HTML file
         with open(os.path.join(web_dir, 'index.html'), 'w', encoding="utf-8") as f:
-            f.write(generate_html(active_sales))
+            f.write(generate_html(games))
 
     def refresh_from_remote_cache(self, url: str = 'https://Smart123s.github.io/ItchClaim/index.json'):
         """Download collected sales from remote URL.
