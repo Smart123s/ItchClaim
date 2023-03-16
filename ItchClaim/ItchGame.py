@@ -23,7 +23,7 @@
 from datetime import datetime
 import json, requests, re, urllib
 import os
-from typing import List, Self
+from typing import List
 from bs4.element import Tag
 from bs4 import BeautifulSoup
 from functools import cached_property
@@ -37,8 +37,8 @@ class ItchGame:
         self.id = id
         self.sales: List[Sale] = []
 
-    @staticmethod
-    def from_div(div: Tag) -> Self:
+    @classmethod
+    def from_div(self, div: Tag):
         """Create an ItchGame Instance from a div that's found in the sale page or the my purchases page"""
         id = int(div.attrs['data-game_id'])
         self = ItchGame(id)
@@ -75,8 +75,8 @@ class ItchGame:
         with open(self.get_default_game_filename(), 'w') as f:
             f.write(json.dumps(data))
 
-    @staticmethod
-    def load_from_disk(path: str) -> Self:
+    @classmethod
+    def load_from_disk(self, path: str):
         """Load cached details about game from the disk"""
         with open(path, 'r') as f:
             data = json.loads(f.read())
