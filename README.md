@@ -12,6 +12,12 @@ itchclaim --login <username> claim
 ```
 This command logs in the user (asks for password if it's ran for the first time), refreshes the list of currently free games, and start claiming the unowned ones.
 
+## Docker
+
+```bash
+docker run --rm -v "<path-to-user-session-directory>:/data" ghcr.io/smart123s/itchclaim --login <username> claim
+```
+
 ## Advanced Usage
 
 ### Logging in (via flags)
