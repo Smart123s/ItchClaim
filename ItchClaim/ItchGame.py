@@ -62,7 +62,7 @@ class ItchGame:
 
     def save_to_disk(self):
         """Save the details of game to the disk"""
-        os.makedirs(ItchGame.get_games_dir(), exist_ok=True)
+        os.makedirs(ItchGame.get_games_dir.__func__(), exist_ok=True)
         data = {
             'id': self.id,
             'name': self.name,
@@ -94,7 +94,7 @@ class ItchGame:
     def get_default_game_filename(self) -> str:
         """Get the default path of the game's cache file"""
         sessionfilename = f'{self.id}.json'
-        return os.path.join(ItchGame.get_games_dir(), sessionfilename)
+        return os.path.join(ItchGame.get_games_dir.__func__(), sessionfilename)
 
     @cached_property
     def claimable(self) -> bool:

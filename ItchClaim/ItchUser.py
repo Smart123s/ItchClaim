@@ -82,7 +82,7 @@ class ItchUser:
 
     def save_session(self):
         """Save session to disk"""
-        os.makedirs(get_users_dir(), exist_ok=True)
+        os.makedirs(get_users_dir.__func__(), exist_ok=True)
         data = {
             'csrf_token': self.csrf_token,
             'itchio': self.s.cookies['itchio'],
@@ -102,7 +102,7 @@ class ItchUser:
     def get_default_session_filename(self) -> str:
         """Get the default session path"""
         sessionfilename = f'session-{self.username}.json'
-        return os.path.join(get_users_dir(), sessionfilename)
+        return os.path.join(get_users_dir.__func__(), sessionfilename)
 
     @cached_property
     def csrf_token(self) -> str:
