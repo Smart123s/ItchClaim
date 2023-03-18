@@ -25,6 +25,7 @@ import json
 import os
 from string import Template
 from typing import List
+import importlib.resources as pkg_resources
 
 from ..ItchGame import ItchGame
 
@@ -39,8 +40,7 @@ ROW_TEMPLATE = Template("""<tr>
     </tr>""")
 
 def generate_web(games: List[ItchGame], web_dir: str):
-    with open('ItchClaim/web/template.html', 'r') as f:
-        template = Template(f.read())
+    template = Template(pkg_resources.read_text(__package__, 'template.html'))
     games.sort(key=lambda a: (-1*a.sales[-1].id, a.name))
 
     # ======= HTML =======
