@@ -56,7 +56,7 @@ class ItchClaim:
                 resume = int(f.read())
                 print(f'Resuming sale downloads from {resume}')
         except:
-            print('Resume index not found. Downloading sales from 83500')
+            print('Resume index not found. Downloading sales from beginning')
 
         DiskManager.get_all_sales(resume)
 
