@@ -27,7 +27,7 @@ from typing import List
 from bs4.element import Tag
 from bs4 import BeautifulSoup
 from functools import cached_property
-from appdirs import user_data_dir
+from .ItchSale import ItchSale
 from . import __version__
 
 class ItchGame:
@@ -35,7 +35,7 @@ class ItchGame:
 
     def __init__(self, id: int):
         self.id = id
-        self.sales: List[Sale] = []
+        self.sales: List[ItchSale] = []
 
     @classmethod
     def from_div(self, div: Tag):
@@ -69,7 +69,7 @@ class ItchGame:
             'url': self.url,
             'price': self.price,
             'claimable': self.claimable,
-            'sales': Sale.serialize_list(self.sales),
+            'sales': ItchSale.serialize_list(self.sales),
             'cover_image': self.cover_image,
         }
         with open(self.get_default_game_filename(), 'w') as f:
@@ -85,10 +85,14 @@ class ItchGame:
         self.name = data['name']
         self.url = data['url']
         self.price = data['price']
-        self.sales = [ Sale.from_dict(sale) for sale in data['sales'] ]
+        self.sales = [ ItchSale.from_dict(sale) for sale in data['sales'] ]
         if data['claimable'] is not None:
             self.claimable = data['claimable']
         self.cover_image = data['cover_image']
+
+        if self.sales[-1].err == 'STATUS_UPDATED':
+            self.save_to_disk()
+
         return self
 
     def get_default_game_filename(self) -> str:
@@ -215,52 +219,5 @@ class ItchGame:
             'name': self.name,
             'url': self.url,
             'claimable': self.claimable,
-            'sales': Sale.serialize_list(self.sales),
+            'sales': ItchSale.serialize_list(self.sales),
         }
-
-class Sale:
-    def __init__(self, id: int, end: datetime = None, start: datetime = None, first: bool = False) -> None:
-        self.id: int = id
-        self.end: datetime = end
-        self.start: datetime = start
-        self.first: bool = first
-
-
-    def serialize(self):
-        dict = {
-            'id': self.id,
-        }
-        if self.start:
-            dict['start'] = int(self.start.timestamp())
-        if self.end:
-            dict['end'] = int(self.end.timestamp())
-        return dict
-
-
-    @classmethod
-    def from_dict(self, dict: dict):
-        id = dict['id']
-        sale: Sale = Sale(id)
-        if 'start' in dict:
-            sale.start = datetime.fromtimestamp(dict['start'])
-        if 'end' in dict:
-            sale.end = datetime.fromtimestamp(dict['end'])
-        return sale
-
-    
-    @staticmethod
-    def serialize_list(list: List):
-        return [ sale.serialize() for sale in list ]
-
-
-    @property
-    def is_active(self):
-        if self.start and datetime.now() < self.start:
-            return False
-        if self.end and datetime.now() > self.end:
-            return False
-        return True
-
-    @property
-    def is_upcoming(self):
-        return self.start and datetime.now() < self.start

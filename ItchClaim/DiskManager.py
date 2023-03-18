@@ -20,50 +20,27 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from datetime import datetime
 import os
 from typing import List
 import requests, json
-from bs4 import BeautifulSoup
-from .ItchGame import ItchGame, Sale
+from .ItchGame import ItchGame
+from .ItchSale import ItchSale
 from . import __version__
 
 def get_all_sales(start: int) -> List[ItchGame]:
     page = start
     games_num = 0
     while True:
-        sale_url = f"https://itch.io/s/{page}"
-        r = requests.get(sale_url,
-                headers={
-                    'User-Agent': f'ItchClaim {__version__}',
-                    'Accept-Language': 'en-GB,en;q=0.9',
-                    })
-        r.encoding = 'utf-8'
-    
-        if r.status_code == 404:
-            print(f'Sale page #{page}: 404 Not Found')
-            if r.url == sale_url and page > 90000:
+        page += 1
+        try:
+            current_sale = ItchSale(page)
+            if current_sale.err == 'NO_MORE_SALES_AVAILABLE' and current_sale.id > 90000:
                 print(f'No more sales available at the moment')
                 break
-            else:
-                page += 1
+            elif current_sale.err:
                 continue
 
-        try:
-            soup = BeautifulSoup(r.text, 'html.parser')
-
-            date_format = '%Y-%m-%dT%H:%M:%SZ'
-            sale_date_raw = soup.find('span', class_='date_format').text
-            sale_date = datetime.strptime(sale_date_raw, date_format)
-
-            # Is the date shown on the site a start or an end?
-            not_active_div = soup.find('div', class_="not_active_notification")
-            if not_active_div and 'Come back ' in not_active_div.text:
-                current_sale = Sale(page, start=sale_date)
-            else:
-                current_sale = Sale(page, end=sale_date)
-
-            games_raw = soup.find_all('div', class_="game_cell")
+            games_raw = current_sale.soup.find_all('div', class_="game_cell")
             for div in games_raw:
                 game: ItchGame = ItchGame.from_div(div)
 
@@ -89,16 +66,13 @@ def get_all_sales(start: int) -> List[ItchGame]:
                 game.save_to_disk()
 
             if game.price == 0:
-                expired = sale_date.timestamp() < datetime.now().timestamp()
-                expired_str = '(expired)' if expired else ''
+                expired_str = '(expired)' if current_sale.is_active else ''
                 print(f'Sale page #{page}: added {len(games_raw)} games', expired_str)
         except Exception as e:
             print(f'Failed to parse sale page {page}. Reason: {e}')
         
         with open(os.path.join(ItchGame.games_dir, 'resume_index.txt'), 'w') as f:
             f.write(str(page))
-
-        page += 1
 
     if games_num == 0:
         print('No new free games found')

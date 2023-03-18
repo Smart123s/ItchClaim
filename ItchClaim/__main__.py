@@ -45,8 +45,9 @@ class ItchClaim:
 
         Args:
             games_dir (str): Output directory"""
-        resume = 1
+        resume = 0
         ItchGame.games_dir = games_dir
+        os.makedirs(games_dir, exist_ok=True)
         try:
             with open(os.path.join(games_dir, 'resume_index.txt'), 'r', encoding='utf-8') as f:
                 resume = int(f.read())
