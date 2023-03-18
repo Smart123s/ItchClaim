@@ -38,3 +38,6 @@ packages = ["ItchClaim"]
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
 version = {attr = "ItchClaim.__init__.__version__"}
+
+[tool.setuptools.package-data]
+ItchClaim = ["*.html"]
