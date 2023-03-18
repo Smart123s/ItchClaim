@@ -1,5 +1,4 @@
 requests
 fire
 pyotp
-appdirs
 beautifulsoup4

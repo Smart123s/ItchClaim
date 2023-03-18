@@ -22,8 +22,9 @@
 
 from functools import cached_property
 from getpass import getpass
+import platform
+import tempfile
 import requests, urllib, pyotp, os, json
-from appdirs import user_data_dir
 from typing import List, Optional
 from bs4 import BeautifulSoup
 from .ItchGame import ItchGame
@@ -82,7 +83,7 @@ class ItchUser:
 
     def save_session(self):
         """Save session to disk"""
-        os.makedirs(get_users_dir.__func__(), exist_ok=True)
+        os.makedirs(ItchUser.get_users_dir(), exist_ok=True)
         data = {
             'csrf_token': self.csrf_token,
             'itchio': self.s.cookies['itchio'],
@@ -105,7 +106,7 @@ class ItchUser:
     def get_default_session_filename(self) -> str:
         """Get the default session path"""
         sessionfilename = f'session-{self.username}.json'
-        return os.path.join(get_users_dir.__func__(), sessionfilename)
+        return os.path.join(ItchUser.get_users_dir(), sessionfilename)
 
     @cached_property
     def csrf_token(self) -> str:
@@ -179,12 +180,19 @@ class ItchUser:
             self.owned_games.extend(page)
             print (f'Library page #{i+1}: added {len(page)} games (total: {len(self.owned_games)})')
 
-@staticmethod
-def get_users_dir() -> str:
-    """Returns default directory for user storage"""
-    if os.environ.get('ITCHCLAIM_DOCKER', False):
-        return '/data/'
-    path = os.path.join(user_data_dir('itchclaim', False), 'users')
-    if not os.path.exists(path):
-        os.makedirs(path, exist_ok=True)
-    return path
+    @staticmethod
+    def get_users_dir() -> str:
+        """Returns default directory for user storage"""
+        if os.environ.get('ITCHCLAIM_DOCKER', False):
+            return '/data/'
+
+        # Source: https://github.com/instaloader/instaloader/blob/6a3d763c/instaloader/instaloader.py#L30-L39
+        if platform.system() == "Windows":
+            # on Windows, use %LOCALAPPDATA%\Instaloader
+            localappdata = os.getenv("LOCALAPPDATA")
+            if localappdata is not None:
+                return os.path.join(localappdata, "ItchClaim", "users")
+            # legacy fallback - store in temp dir if %LOCALAPPDATA% is not set
+            return os.path.join(tempfile.gettempdir(), ".itchclaim", "users")
+        # on Unix, use ~/.config/instaloader
+        return os.path.join(os.getenv("XDG_CONFIG_HOME", os.path.expanduser("~/.config")), "itchclaim", "users")
