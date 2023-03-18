@@ -23,7 +23,7 @@
 import os
 from fire import Fire
 
-from .web.web import generate_web
+from .web import generate_web
 from . import DiskManager
 from .ItchUser import ItchUser
 from .ItchGame import ItchGame

@@ -27,7 +27,7 @@ from string import Template
 from typing import List
 import importlib.resources as pkg_resources
 
-from ..ItchGame import ItchGame
+from .ItchGame import ItchGame
 
 DATE_FORMAT = '<span>%Y-%m-%d</span> <span>%H:%M</span>'
 ROW_TEMPLATE = Template("""<tr>
@@ -40,7 +40,7 @@ ROW_TEMPLATE = Template("""<tr>
     </tr>""")
 
 def generate_web(games: List[ItchGame], web_dir: str):
-    template = Template(pkg_resources.read_text(__package__, 'template.html'))
+    template = Template(pkg_resources.read_text(__package__, 'index.template.html'))
     games.sort(key=lambda a: (-1*a.sales[-1].id, a.name))
 
     # ======= HTML =======
