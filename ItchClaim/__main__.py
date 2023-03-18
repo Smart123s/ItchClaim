@@ -32,27 +32,23 @@ class ItchClaim:
     def __init__(self,
                 login: str = None,
                 password: str = None,
-                totp: str = None,
-                dir: str = None):
-        """Automatically claim free games from itch.io
-
-        Args:
-            dir (str): Specify the game cache directory
-        """
-
-        ItchGame.custom_dir = dir
-
+                totp: str = None):
+        """Automatically claim free games from itch.io"""
         if login is not None:
             self.user = ItchClaim._login(login, password, totp)
         else:
             self.user = None
 
-    def refresh_sale_cache(object):
+    def refresh_sale_cache(self, games_dir: str = 'web/data/'):
         """Refresh the cache about game sales
-        Opens itch.io and downloads sales posted after the last saved one."""
+        Opens itch.io and downloads sales posted after the last saved one.
+
+        Args:
+            games_dir (str): Output directory"""
         resume = 1
+        ItchGame.games_dir = games_dir
         try:
-            with open(os.path.join(ItchGame.get_games_dir(), 'resume_index.txt'), 'r') as f:
+            with open(os.path.join(games_dir, 'resume_index.txt'), 'r', encoding='utf-8') as f:
                 resume = int(f.read())
                 print(f'Resuming sale downloads from {resume}')
         except:
@@ -100,20 +96,23 @@ class ItchClaim:
 
         Args:
             id (int): The ID of the requested game.
-            Note: Currently only supports locally cached games
+        
+        Note:
+            Currently broken
         """
-        path = os.path.join(ItchGame.get_games_dir(), str(id) + '.json')
-        game: ItchGame = ItchGame.load_from_disk(path)
+        game: ItchGame = ItchGame(id)
         session = self.user.s if self.user is not None else None
         print(game.downloadable_files(session))
 
-    def generate_web(object, web_dir: str = 'web'):
+    def generate_web(self, web_dir: str = 'web'):
         """Generates files that can be served as a static website
         
         Args:
             web_dir (str): Output directory"""
 
+        ItchGame.games_dir = os.path.join(web_dir, 'data')
         os.makedirs(os.path.join(web_dir, 'api'), exist_ok=True)
+        os.makedirs(ItchGame.games_dir, exist_ok=True)
 
         games = DiskManager.load_all_games()
         generate_web(games, web_dir)

@@ -95,7 +95,7 @@ def get_all_sales(start: int) -> List[ItchGame]:
         except Exception as e:
             print(f'Failed to parse sale page {page}. Reason: {e}')
         
-        with open(os.path.join(ItchGame.get_games_dir(), 'resume_index.txt'), 'w') as f:
+        with open(os.path.join(ItchGame.games_dir, 'resume_index.txt'), 'w') as f:
             f.write(str(page))
 
         page += 1
@@ -108,10 +108,10 @@ def get_all_sales(start: int) -> List[ItchGame]:
 def load_all_games():
     """Load all games cached on the disk"""
     l: List[ItchGame] = []
-    for file in os.listdir(ItchGame.get_games_dir()):
+    for file in os.listdir(ItchGame.games_dir):
         if not file.endswith('.json'):
             continue
-        path = os.path.join(ItchGame.get_games_dir(), file)
+        path = os.path.join(ItchGame.games_dir, file)
         l.append(ItchGame.load_from_disk(path))
     return l
 

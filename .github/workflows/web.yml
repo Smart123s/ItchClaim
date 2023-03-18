@@ -36,9 +36,9 @@ jobs:
           restore-keys: |
             ${{ env.cache-name }}
       - name: Refresh sales from itch.io
-        run: python itchclaim.py refresh_sale_cache --dir web/data/
-      - name: Generate index.html
-        run: python itchclaim.py generate_web --dir web/data/ --web_dir web/
+        run: python itchclaim.py refresh_sale_cache --games_dir web/data/
+      - name: Generate index.html and JSON data
+        run: python itchclaim.py generate_web --web_dir web/
       - name: Upload Page
         uses: actions/upload-pages-artifact@v1
         with:

@@ -31,7 +31,7 @@ from appdirs import user_data_dir
 from . import __version__
 
 class ItchGame:
-    custom_dir: str = None
+    games_dir: str = 'web/data/'
 
     def __init__(self, id: int):
         self.id = id
@@ -62,7 +62,7 @@ class ItchGame:
 
     def save_to_disk(self):
         """Save the details of game to the disk"""
-        os.makedirs(ItchGame.get_games_dir.__func__(), exist_ok=True)
+        os.makedirs(ItchGame.games_dir, exist_ok=True)
         data = {
             'id': self.id,
             'name': self.name,
@@ -94,7 +94,7 @@ class ItchGame:
     def get_default_game_filename(self) -> str:
         """Get the default path of the game's cache file"""
         sessionfilename = f'{self.id}.json'
-        return os.path.join(ItchGame.get_games_dir.__func__(), sessionfilename)
+        return os.path.join(ItchGame.games_dir, sessionfilename)
 
     @cached_property
     def claimable(self) -> bool:
@@ -217,17 +217,6 @@ class ItchGame:
             'claimable': self.claimable,
             'sales': Sale.serialize_list(self.sales),
         }
-    
-    @staticmethod
-    def get_games_dir() -> str:
-        """Returns default directory for user storage"""
-        if ItchGame.custom_dir:
-            path = ItchGame.custom_dir
-        else:
-            path = os.path.join(user_data_dir('itchclaim', False), 'games')
-        if not os.path.exists(path):
-            os.makedirs(path, exist_ok=True)
-        return path
 
 class Sale:
     def __init__(self, id: int, end: datetime = None, start: datetime = None, first: bool = False) -> None:
