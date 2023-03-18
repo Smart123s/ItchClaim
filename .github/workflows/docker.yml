@@ -29,12 +29,18 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v3
         with:
           images: |
             ghcr.io/smart123s/itchclaim
+            smart123s/itchclaim
           tags: |
             type=pep440,pattern={{version}}
             type=edge,branch=master
