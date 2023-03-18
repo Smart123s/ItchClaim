@@ -1,5 +1,5 @@
 # The MIT License (MIT)
-# 
+#
 # Copyright (c) 2022-2023 Péter Tombor.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,14 +20,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import os
+import os, requests, json
 from typing import List
-import requests, json
 from .ItchGame import ItchGame
 from .ItchSale import ItchSale
 from . import __version__
 
 def get_all_sales(start: int) -> List[ItchGame]:
+    """Download details about every sale posted on itch.io
+
+    Args:
+        start (int): the ID of the first sale to download
+    """
     page = start
     games_num = 0
     while True:
@@ -35,7 +39,7 @@ def get_all_sales(start: int) -> List[ItchGame]:
         try:
             current_sale = ItchSale(page)
             if current_sale.err == 'NO_MORE_SALES_AVAILABLE' and current_sale.id > 90000:
-                print(f'No more sales available at the moment')
+                print('No more sales available at the moment')
                 break
             elif current_sale.err:
                 continue
@@ -57,7 +61,7 @@ def get_all_sales(start: int) -> List[ItchGame]:
                         continue
 
                 game.sales.append(current_sale)
-                
+
                 if game.price != 0:
                     print(f'Sale page #{page}: games are not discounted by 100%')
                     break
@@ -68,10 +72,11 @@ def get_all_sales(start: int) -> List[ItchGame]:
             if game.price == 0:
                 expired_str = '(expired)' if current_sale.is_active else ''
                 print(f'Sale page #{page}: added {len(games_raw)} games', expired_str)
-        except Exception as e:
-            print(f'Failed to parse sale page {page}. Reason: {e}')
-        
-        with open(os.path.join(ItchGame.games_dir, 'resume_index.txt'), 'w') as f:
+        #pylint: disable=broad-exception-caught
+        except Exception as ex:
+            print(f'Failed to parse sale page {page}. Reason: {ex}')
+
+        with open(os.path.join(ItchGame.games_dir, 'resume_index.txt'), 'w', encoding='utf-8') as f:
             f.write(str(page))
 
     if games_num == 0:
@@ -90,7 +95,7 @@ def load_all_games():
     return l
 
 def download_from_remote_cache(url: str) -> List[ItchGame]:
-    r = requests.get(url)
+    r = requests.get(url, timeout=8)
     games_raw = json.loads(r.text)
     games = []
     for game_json in games_raw:

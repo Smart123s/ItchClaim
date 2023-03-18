@@ -1,5 +1,5 @@
 # The MIT License (MIT)
-# 
+#
 # Copyright (c) 2022-2023 Péter Tombor.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,12 +21,11 @@
 # SOFTWARE.
 
 from datetime import datetime
-import json, requests, re, urllib
-import os
 from typing import List
+from functools import cached_property
+import json, requests, re, urllib, os
 from bs4.element import Tag
 from bs4 import BeautifulSoup
-from functools import cached_property
 from .ItchSale import ItchSale
 from . import __version__
 
@@ -35,10 +34,14 @@ class ItchGame:
 
     def __init__(self, id: int):
         self.id = id
+        self.name: str = None
+        self.url: str = None
+        self.price: int = None
         self.sales: List[ItchSale] = []
+        self.cover_image: str = None
 
     @classmethod
-    def from_div(self, div: Tag):
+    def from_div(cls, div: Tag):
         """Create an ItchGame Instance from a div that's found in the sale page or the my purchases page"""
         id = int(div.attrs['data-game_id'])
         self = ItchGame(id)
@@ -72,13 +75,13 @@ class ItchGame:
             'sales': ItchSale.serialize_list(self.sales),
             'cover_image': self.cover_image,
         }
-        with open(self.get_default_game_filename(), 'w') as f:
+        with open(self.get_default_game_filename(), 'w', encoding='utf-8') as f:
             f.write(json.dumps(data))
 
     @classmethod
-    def load_from_disk(self, path: str):
+    def load_from_disk(cls, path: str):
         """Load cached details about game from the disk"""
-        with open(path, 'r') as f:
+        with open(path, 'r', encoding='utf-8') as f:
             data = json.loads(f.read())
         id = data['id']
         self = ItchGame(id)
@@ -104,7 +107,7 @@ class ItchGame:
     def claimable(self) -> bool:
         if not self.sales[-1].is_active:
             return None
-        r = requests.get(self.url)
+        r = requests.get(self.url, timeout=8)
         r.encoding = 'utf-8'
         soup = BeautifulSoup(r.text, 'html.parser')
         buy_row = soup.find('div', class_='buy_row')
@@ -116,7 +119,7 @@ class ItchGame:
             return None
         claimable = buy_box.text == 'Download or claim'
         return claimable
-    
+
     @property
     def sale_end(self) -> datetime:
         return self.sales[-1].end

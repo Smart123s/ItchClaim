@@ -1,6 +1,6 @@
-import requests
-from datetime import datetime
 from typing import List
+from datetime import datetime
+import requests
 from bs4 import BeautifulSoup
 from . import __version__
 
@@ -30,7 +30,7 @@ class ItchSale:
                     'Accept-Language': 'en-GB,en;q=0.9',
                     }, timeout=8)
         r.encoding = 'utf-8'
-    
+
         if r.status_code == 404:
             print(f'Sale page #{self.id}: 404 Not Found')
             if r.url == sale_url:
@@ -71,7 +71,7 @@ class ItchSale:
         end = datetime.fromtimestamp(dict['end']) if 'end' in dict else None
         return ItchSale(id, start=start, end=end)
 
-    
+
     @staticmethod
     def serialize_list(list: List):
         return [ sale.serialize() for sale in list ]

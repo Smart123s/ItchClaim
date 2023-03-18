@@ -1,5 +1,5 @@
 # The MIT License (MIT)
-# 
+#
 # Copyright (c) 2022-2023 Péter Tombor.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -144,8 +144,8 @@ class ItchUser:
             print(f"Game {game.name} is not claimable (url: {game.url})")
             return
         claim_url = claim_box.find('form')['action']
-        r = self.s.post(claim_url, 
-                        data={'csrf_token': self.csrf_token}, 
+        r = self.s.post(claim_url,
+                        data={'csrf_token': self.csrf_token},
                         headers={ 'Content-Type': 'application/x-www-form-urlencoded'}
                         )
         r.encoding = 'utf-8'

@@ -1,5 +1,5 @@
 # The MIT License (MIT)
-# 
+#
 # Copyright (c) 2022-2023 Péter Tombor.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -28,6 +28,7 @@ from . import DiskManager
 from .ItchUser import ItchUser
 from .ItchGame import ItchGame
 
+# pylint: disable=missing-class-docstring
 class ItchClaim:
     def __init__(self,
                 login: str = None,
@@ -35,7 +36,7 @@ class ItchClaim:
                 totp: str = None):
         """Automatically claim free games from itch.io"""
         if login is not None:
-            self.user = ItchClaim._login(login, password, totp)
+            self.login(login, password, totp)
         else:
             self.user = None
 
@@ -52,7 +53,7 @@ class ItchClaim:
             with open(os.path.join(games_dir, 'resume_index.txt'), 'r', encoding='utf-8') as f:
                 resume = int(f.read())
                 print(f'Resuming sale downloads from {resume}')
-        except:
+        except FileNotFoundError:
             print('Resume index not found. Downloading sales from beginning')
 
         DiskManager.get_all_sales(resume)
@@ -91,17 +92,17 @@ class ItchClaim:
                 claimed_games += 1
         if claimed_games == 0:
             print('No new games can be claimed.')
-    
-    def download_urls(self, id: int):
+
+    def download_urls(self, game_id: int):
         """Get details about a game, including it's CDN URLs.
 
         Args:
-            id (int): The ID of the requested game.
+            game_id (int): The ID of the requested game.
         
         Note:
             Currently broken
         """
-        game: ItchGame = ItchGame(id)
+        game: ItchGame = ItchGame(game_id)
         session = self.user.s if self.user is not None else None
         print(game.downloadable_files(session))
 
@@ -118,9 +119,10 @@ class ItchClaim:
         games = DiskManager.load_all_games()
         generate_web(games, web_dir)
 
-    def _login(username: str = None,
-               password: str = None,
-               totp: str = None) -> ItchUser:
+    def login(self,
+                username: str = None,
+                password: str = None,
+                totp: str = None) -> ItchUser:
         """Load session from disk if exists, or use password otherwise.
 
         Args:
@@ -132,14 +134,14 @@ class ItchClaim:
         Returns:
             ItchUser: a logged in ItchUser instance
         """
-        user = ItchUser(username)
+        self.user = ItchUser(username)
         try:
-            user.load_session()
+            self.user.load_session()
             print(f'Session {username} loaded successfully')
-        except:
-            user.login(password, totp)
+        except FileNotFoundError:
+            self.user.login(password, totp)
             print(f'Logged in as {username}')
-        return user
 
+# pylint: disable=missing-function-docstring
 def main():
     Fire(ItchClaim)

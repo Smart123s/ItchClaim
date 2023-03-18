@@ -1,5 +1,5 @@
 # The MIT License (MIT)
-# 
+#
 # Copyright (c) 2022-2023 Péter Tombor.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -87,7 +87,7 @@ def generate_rows(games: List[ItchGame]) -> List[str]:
         else:
             claimable_text = 'Unknown'
             claimable_icon = '&#x1F551;'
-        
+
         sale_date = game.sales[-1].end if game.sales[-1].end else game.sales[-1].start
 
         rows.append(ROW_TEMPLATE.substitute(
