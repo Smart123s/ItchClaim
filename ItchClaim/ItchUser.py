@@ -97,7 +97,10 @@ class ItchUser:
             data = json.load(f)
         self.s.cookies.set('itchio_token', data['csrf_token'], domain='.itch.io')
         self.s.cookies.set('itchio', data['itchio'], domain='.itch.io')
-        self.owned_games  = [ItchGame(id) for id in data['owned_games']] 
+        try:
+            self.owned_games  = [ItchGame(id) for id in data['owned_games']]
+        except KeyError:
+            pass
 
     def get_default_session_filename(self) -> str:
         """Get the default session path"""
