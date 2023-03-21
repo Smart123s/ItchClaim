@@ -23,9 +23,14 @@
 from functools import cached_property
 from getpass import getpass
 import platform
+import re
 import tempfile
-import requests, urllib, pyotp, os, json
+import urllib
+import os
+import json
 from typing import List, Optional
+import requests
+import pyotp
 from bs4 import BeautifulSoup
 from .ItchGame import ItchGame
 from . import __version__
@@ -105,7 +110,8 @@ class ItchUser:
 
     def get_default_session_filename(self) -> str:
         """Get the default session path"""
-        sessionfilename = f'session-{self.username}.json'
+        safe_username = re.sub(r'\W', '_', self.username)
+        sessionfilename = f'session-{safe_username}.json'
         return os.path.join(ItchUser.get_users_dir(), sessionfilename)
 
     @cached_property
