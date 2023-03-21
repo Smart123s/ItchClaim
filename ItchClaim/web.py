@@ -48,7 +48,7 @@ def generate_web(games: List[ItchGame], web_dir: str):
     active_sales = list(filter(lambda game: game.is_sale_active, games))
     active_sales_rows = generate_rows(active_sales, 'active')
 
-    upcoming_sales = list(filter(lambda game: game.is_sale_upcoming, games))
+    upcoming_sales = list(filter(lambda game: game.last_upcoming_sale, games))
     upcoming_sales_rows = generate_rows(upcoming_sales, 'upcoming')
 
     html = template.substitute(

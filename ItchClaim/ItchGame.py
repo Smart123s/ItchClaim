@@ -132,6 +132,8 @@ class ItchGame:
 
     @property
     def is_sale_active(self) -> bool:
+        if not self.last_ending_sale:
+            return False
         return self.last_ending_sale.is_active
 
     @property
@@ -139,14 +141,10 @@ class ItchGame:
         sales_with_start = list(filter(lambda a: a.start, self.sales))
         if len(sales_with_start) == 0:
             return None
-        return max(sales_with_start, key=lambda a: a.start)
-
-    @property
-    def is_sale_upcoming(self) -> bool:
-        sales_with_start = list(filter(lambda a: a.start, self.sales))
-        if len(sales_with_start) == 0:
+        last_sale = max(sales_with_start, key=lambda a: a.start)
+        if not last_sale.is_upcoming:
             return None
-        return self.last_upcoming_sale.is_upcoming
+        return last_sale
 
     @property
     def is_first_sale(self) -> bool:
