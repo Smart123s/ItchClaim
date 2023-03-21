@@ -89,7 +89,7 @@ def generate_rows(games: List[ItchGame], type: str) -> List[str]:
             claimable_icon = '&#x1F551;'
         
         if type == 'active':
-            sale_date = game.last_ending_sale.end
+            sale_date = game.closest_ending_sale.end
         elif type == 'upcoming':
             sale_date = game.last_upcoming_sale.start
 

@@ -108,7 +108,7 @@ class ItchGame:
 
     @cached_property
     def claimable(self) -> bool:
-        if not self.last_ending_sale.is_active:
+        if not self.closest_ending_sale:
             return None
         r = requests.get(self.url, timeout=8)
         r.encoding = 'utf-8'
@@ -124,17 +124,17 @@ class ItchGame:
         return claimable
 
     @property
-    def last_ending_sale(self) -> ItchSale:
-        sales_with_end = list(filter(lambda a: a.end, self.sales))
-        if len(sales_with_end) == 0:
+    def closest_ending_sale(self) -> ItchSale:
+        active_sales = list(filter(lambda a: a.is_active, self.sales))
+        if len(active_sales) == 0:
             return None
-        return max(sales_with_end, key=lambda a: a.end)
+        return min(active_sales, key=lambda a: a.end)
 
     @property
     def is_sale_active(self) -> bool:
-        if not self.last_ending_sale:
+        if not self.closest_ending_sale:
             return False
-        return self.last_ending_sale.is_active
+        return self.closest_ending_sale.is_active
 
     @property
     def last_upcoming_sale(self) -> ItchSale:
