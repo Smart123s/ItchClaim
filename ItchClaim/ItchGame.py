@@ -93,8 +93,11 @@ class ItchGame:
             self.claimable = data['claimable']
         self.cover_image = data['cover_image']
 
-        if self.sales[-1].err == 'STATUS_UPDATED':
-            self.save_to_disk()
+        # save game is sale status was updated
+        for sale in self.sales:
+            if sale.err == 'STATUS_UPDATED':
+                self.save_to_disk()
+                break
 
         return self
 
@@ -105,7 +108,7 @@ class ItchGame:
 
     @cached_property
     def claimable(self) -> bool:
-        if not self.sales[-1].is_active:
+        if not self.last_ending_sale.is_active:
             return None
         r = requests.get(self.url, timeout=8)
         r.encoding = 'utf-8'
@@ -121,16 +124,29 @@ class ItchGame:
         return claimable
 
     @property
-    def sale_end(self) -> datetime:
-        return self.sales[-1].end
+    def last_ending_sale(self) -> ItchSale:
+        sales_with_end = list(filter(lambda a: a.end, self.sales))
+        if len(sales_with_end) == 0:
+            return None
+        return max(sales_with_end, key=lambda a: a.end)
 
     @property
     def is_sale_active(self) -> bool:
-        return self.sales[-1].is_active
+        return self.last_ending_sale.is_active
+
+    @property
+    def last_upcoming_sale(self) -> ItchSale:
+        sales_with_start = list(filter(lambda a: a.start, self.sales))
+        if len(sales_with_start) == 0:
+            return None
+        return max(sales_with_start, key=lambda a: a.start)
 
     @property
     def is_sale_upcoming(self) -> bool:
-        return self.sales[-1].is_upcoming
+        sales_with_start = list(filter(lambda a: a.start, self.sales))
+        if len(sales_with_start) == 0:
+            return None
+        return self.last_upcoming_sale.is_upcoming
 
     @property
     def is_first_sale(self) -> bool:

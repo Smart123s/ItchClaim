@@ -46,10 +46,10 @@ def generate_web(games: List[ItchGame], web_dir: str):
     # ======= HTML =======
 
     active_sales = list(filter(lambda game: game.is_sale_active, games))
-    active_sales_rows = generate_rows(active_sales)
+    active_sales_rows = generate_rows(active_sales, 'active')
 
     upcoming_sales = list(filter(lambda game: game.is_sale_upcoming, games))
-    upcoming_sales_rows = generate_rows(upcoming_sales)
+    upcoming_sales_rows = generate_rows(upcoming_sales, 'upcoming')
 
     html = template.substitute(
             active_sales_rows = '\n'.join(active_sales_rows),
@@ -75,7 +75,7 @@ def generate_web(games: List[ItchGame], web_dir: str):
     with open(os.path.join(web_dir, 'api', 'all.json'), 'w', encoding="utf-8") as f:
         f.write(json.dumps(all_min))
 
-def generate_rows(games: List[ItchGame]) -> List[str]:
+def generate_rows(games: List[ItchGame], type: str) -> List[str]:
     rows: List[str] = []
     for game in games:
         if game.claimable == False:
@@ -87,8 +87,11 @@ def generate_rows(games: List[ItchGame]) -> List[str]:
         else:
             claimable_text = 'Unknown'
             claimable_icon = '&#x1F551;'
-
-        sale_date = game.sales[-1].end if game.sales[-1].end else game.sales[-1].start
+        
+        if type == 'active':
+            sale_date = game.last_ending_sale.end
+        elif type == 'upcoming':
+            sale_date = game.last_upcoming_sale.start
 
         rows.append(ROW_TEMPLATE.substitute(
             name = game.name,
