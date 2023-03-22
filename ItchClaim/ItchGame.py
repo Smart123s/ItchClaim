@@ -101,6 +101,44 @@ class ItchGame:
 
         return self
 
+    @classmethod
+    def from_api(cls, url: str):
+        """Get details about a game from the itch.io API
+        
+        Args:
+            url (str): the url of the game
+            
+        Returns:
+            An ItchGame instance, containing the data returned by the API"""
+        # remove tailing slash from url
+        if url[-1] == '/':
+            url = url[:-1]
+
+        r = requests.get(url + '/data.json',
+                        headers={'User-Agent': f'ItchClaim {__version__}'},
+                        timeout=8,)
+        r.encoding = 'utf-8'
+        resp = json.loads(r.text)
+
+        game_id = resp['id']
+        game = ItchGame(game_id)
+
+        game.url = url
+        game.price = resp['price']
+        game.name = resp['title']
+        game.cover_image = resp['cover_image']
+
+        if resp['sale'] and resp['sale']['rate'] == 100:
+            date_format = '%Y-%m-%d %H:%M:%S'
+            end_date_raw = resp['sale']['end_date']
+            end_date = datetime.strptime(end_date_raw, date_format)
+
+            game.sales = [
+                ItchSale(game_id, end=end_date)
+            ]
+
+        return game
+
     def get_default_game_filename(self) -> str:
         """Get the default path of the game's cache file"""
         sessionfilename = f'{self.id}.json'
@@ -149,14 +187,6 @@ class ItchGame:
     @property
     def is_first_sale(self) -> bool:
         return len(self.sales) == 1
-
-    def sale_end_online(self) -> datetime:
-        r = requests.get(self.url + '/data.json')
-        r.encoding = 'utf-8'
-        resp = json.loads(r.text)
-        date_str = resp['sale']['end_date']
-        date_format = '%Y-%m-%d %H:%M:%S'
-        return datetime.strptime(date_str, date_format)
 
     def downloadable_files(self, s: requests.Session = None) -> List:
         """Get details about a game, including it's CDN URls
