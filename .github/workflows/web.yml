@@ -7,6 +7,9 @@ on:
   push:
     branches:
       - master
+  pull_request:
+    branches:
+      - master
 
 jobs:
   # Build job
@@ -48,6 +51,9 @@ jobs:
   deploy:
     # Add a dependency to the build job
     needs: build
+
+    # Don't deploy pull requests
+    if: github.event_name != 'pull_request'
 
     # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
     permissions:
