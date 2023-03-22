@@ -37,41 +37,11 @@ def get_all_sales(start: int) -> List[ItchGame]:
     while True:
         page += 1
         try:
-            current_sale = ItchSale(page)
-            if current_sale.err == 'NO_MORE_SALES_AVAILABLE' and current_sale.id > 90000:
-                print('No more sales available at the moment')
+            games_added = get_one_sale(page)
+            if games_added == -1:
                 break
-            elif current_sale.err:
-                continue
-
-            games_raw = current_sale.soup.find_all('div', class_="game_cell")
-            for div in games_raw:
-                game: ItchGame = ItchGame.from_div(div)
-
-                # If the sale is not active, we can't check if it's claimable
-                if not current_sale.is_active:
-                    game.claimable = None
-
-                # load previously saved sales
-                if os.path.exists(game.get_default_game_filename()):
-                    disk_game: ItchGame = ItchGame.load_from_disk(game.get_default_game_filename())
-                    game.sales = disk_game.sales
-                    if game.sales[-1].id == page:
-                        print(f'Sale {page} has been already saved for game {game.name} (wrong resume index?)')
-                        continue
-
-                game.sales.append(current_sale)
-
-                if game.price != 0:
-                    print(f'Sale page #{page}: games are not discounted by 100%')
-                    break
-
-                games_num += 1
-                game.save_to_disk()
-
-            if game.price == 0:
-                expired_str = '(expired)' if current_sale.is_active else ''
-                print(f'Sale page #{page}: added {len(games_raw)} games', expired_str)
+            else:
+                games_num += games_added
         #pylint: disable=broad-exception-caught
         except Exception as ex:
             print(f'Failed to parse sale page {page}. Reason: {ex}')
@@ -83,6 +53,58 @@ def get_all_sales(start: int) -> List[ItchGame]:
         print('No new free games found')
     else:
         print(f'Execution finished. Added a total of {games_num} games')
+
+def get_one_sale(page: int) -> int:
+    """"Downloads one sale page, and saves the results to the disk
+
+    Args:
+        page (int): the sale_id  to be downloaded
+
+    Returns:
+        int: The number of games saved
+    """
+    games_num = 0
+    current_sale = ItchSale(page)
+    if current_sale.err == 'NO_MORE_SALES_AVAILABLE' and current_sale.id > 90000:
+        print('No more sales available at the moment')
+        return -1
+    elif current_sale.err:
+        return 0
+
+    games_raw = current_sale.soup.find_all('div', class_="game_cell")
+
+    if len(games_raw) == 0:
+        print(f'Sale page #{page}: empty page')
+        return 0
+
+    for div in games_raw:
+        game: ItchGame = ItchGame.from_div(div)
+
+        # If the sale is not active, we can't check if it's claimable
+        if not current_sale.is_active:
+            game.claimable = None
+
+        # load previously saved sales
+        if os.path.exists(game.get_default_game_filename()):
+            disk_game: ItchGame = ItchGame.load_from_disk(game.get_default_game_filename())
+            game.sales = disk_game.sales
+            if game.sales[-1].id == page:
+                print(f'Sale {page} has been already saved for game {game.name} (wrong resume index?)')
+                continue
+
+        game.sales.append(current_sale)
+
+        if game.price != 0:
+            print(f'Sale page #{page}: games are not discounted by 100%')
+            break
+
+        games_num += 1
+        game.save_to_disk()
+
+    if game.price == 0:
+        expired_str = '(expired)' if current_sale.is_active else ''
+        print(f'Sale page #{page}: added {len(games_raw)} games', expired_str)
+    return games_num
 
 def load_all_games():
     """Load all games cached on the disk"""
