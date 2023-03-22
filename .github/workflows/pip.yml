@@ -25,6 +25,10 @@ jobs:
         pip install build twine
     - name: Build package
       run: python -m build
+    - uses: actions/upload-artifact@v3
+      with:
+        name: ItchClaim-${{ github.sha }}-py3-none-any-whl
+        path: dist/*.whl
     - name: Push package
       if: github.event_name == 'push' && contains(github.ref, 'refs/tags/v')
       env:
