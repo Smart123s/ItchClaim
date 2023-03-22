@@ -102,16 +102,12 @@ class ItchClaim:
         if claimed_games == 0:
             print('No new games can be claimed.')
 
-    def download_urls(self, game_id: int):
-        """Get details about a game, including it's CDN URLs.
+    def download_urls(self, game_url: int):
+        """Get details about a game, including it's CDN download URLs.
 
         Args:
-            game_id (int): The ID of the requested game.
-        
-        Note:
-            Currently broken
-        """
-        game: ItchGame = ItchGame(game_id)
+            game_url (int): The url of the requested game."""
+        game: ItchGame = ItchGame.from_api(game_url)
         session = self.user.s if self.user is not None else None
         print(game.downloadable_files(session))
 

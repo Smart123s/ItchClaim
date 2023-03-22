@@ -43,10 +43,9 @@ ItchClaim collects new sales from itch.io every 6 hours and publishes them on Gi
 
 ### Download links
 ```bash
-itchclaim [--login <username>] download_urls
+itchclaim [--login <username>] download_urls <game_url>
 ```
-Generate a download URL for a game. These links have an expiration date. If the game doesn't require claiming, this command can be run without logging in.
-*Note: this command is currently broken.*
+Generate a list of uploaded files and their download URLs for a game. These links have an expiration date. If the game doesn't require claiming, this command can be run without logging in.
 
 ## CI Commands
 

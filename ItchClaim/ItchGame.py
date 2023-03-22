@@ -198,7 +198,7 @@ class ItchGame:
             s (Session): The session used to get the download links"""
         if s is None:
             s = requests.session()
-            s.headers.update(headers={'User-Agent': f'ItchClaim {__version__}'})
+            s.headers.update({'User-Agent': f'ItchClaim {__version__}'})
             s.get('https://itch.io/')
         csrf_token = urllib.parse.unquote(s.cookies['itchio_token'])
 
