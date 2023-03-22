@@ -36,7 +36,7 @@ class ItchGame:
         self.id = id
         self.name: str = None
         self.url: str = None
-        self.price: int = None
+        self.price: float = None
         self.sales: List[ItchSale] = []
         self.cover_image: str = None
 
@@ -60,7 +60,10 @@ class ItchGame:
             price_str = re.findall("[-+]?(?:\d*\.\d+|\d+)", price_element.text)[0]
             self.price = float(price_str)
         else:
-            self.price = None
+            # some obscure games have no price (they are always free) and are also
+            # discounted by 100% and are claimable, for example:
+            # https://web.archive.org/web/20230308004149/https://itch.io/s/88108/100-discount
+            self.price = ItchGame.from_api(self.url).price
         return self
 
     def save_to_disk(self):
@@ -124,7 +127,7 @@ class ItchGame:
         game = ItchGame(game_id)
 
         game.url = url
-        game.price = resp['price']
+        game.price = float(resp['price'][1:])
         game.name = resp['title']
         game.cover_image = resp['cover_image']
 

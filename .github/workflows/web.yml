@@ -2,6 +2,14 @@ name: Web
 
 on:
   workflow_dispatch:
+    inputs:
+      sales:
+        type: string
+        description: |
+          Comma separated values of the games to explicitly refresh.
+          Resumes refresh from previous end point if left empty.
+          Example (without apostrophes): '2, 5, 88888'
+        required: false
   schedule:
     - cron:  '18 0,6,12,18 * * *'
   push:
@@ -39,7 +47,7 @@ jobs:
           restore-keys: |
             ${{ env.cache-name }}
       - name: Refresh sales from itch.io
-        run: python itchclaim.py refresh_sale_cache --games_dir web/data/
+        run: python itchclaim.py refresh_sale_cache --games_dir web/data/ --sales [${{ github.event.inputs.sales }}]
       - name: Generate index.html and JSON data
         run: python itchclaim.py generate_web --web_dir web/
       - name: Upload Page

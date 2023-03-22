@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 import os
+from typing import List
 from fire import Fire
 
 from .web import generate_web
@@ -40,15 +41,23 @@ class ItchClaim:
         else:
             self.user = None
 
-    def refresh_sale_cache(self, games_dir: str = 'web/data/'):
+    def refresh_sale_cache(self, games_dir: str = 'web/data/', sales: List[int] = None):
         """Refresh the cache about game sales
         Opens itch.io and downloads sales posted after the last saved one.
 
         Args:
-            games_dir (str): Output directory"""
+            games_dir (str): Output directory
+            sales: (List[int]): Only refresh the sales specified in this list"""
         resume = 0
         ItchGame.games_dir = games_dir
         os.makedirs(games_dir, exist_ok=True)
+
+        if sales:
+            print('--sales flag found - refreshing only select sale pages')
+            for sale_id in sales:
+                DiskManager.get_one_sale(sale_id)
+            return
+
         try:
             with open(os.path.join(games_dir, 'resume_index.txt'), 'r', encoding='utf-8') as f:
                 resume = int(f.read())

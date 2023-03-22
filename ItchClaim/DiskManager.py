@@ -37,7 +37,7 @@ def get_all_sales(start: int) -> List[ItchGame]:
     while True:
         page += 1
         try:
-            games_added = get_one_sale(page)
+            games_added = get_one_sale(page, force=False)
             if games_added == -1:
                 break
             else:
@@ -54,11 +54,13 @@ def get_all_sales(start: int) -> List[ItchGame]:
     else:
         print(f'Execution finished. Added a total of {games_num} games')
 
-def get_one_sale(page: int) -> int:
+def get_one_sale(page: int, force: bool = True) -> int:
     """"Downloads one sale page, and saves the results to the disk
 
     Args:
         page (int): the sale_id  to be downloaded
+        force (bool): set to True if method is not called from refresh_sale_cache.
+            Makes sure that the sales array in the game is sorted and doesn't contain duplicate elements.
 
     Returns:
         int: The number of games saved
@@ -80,6 +82,10 @@ def get_one_sale(page: int) -> int:
     for div in games_raw:
         game: ItchGame = ItchGame.from_div(div)
 
+        if game.price != 0:
+            print(f'Sale page #{page}: games are not discounted by 100%')
+            break
+
         # If the sale is not active, we can't check if it's claimable
         if not current_sale.is_active:
             game.claimable = None
@@ -88,15 +94,23 @@ def get_one_sale(page: int) -> int:
         if os.path.exists(game.get_default_game_filename()):
             disk_game: ItchGame = ItchGame.load_from_disk(game.get_default_game_filename())
             game.sales = disk_game.sales
-            if game.sales[-1].id == page:
+            if game.sales[-1].id == page and not force:
                 print(f'Sale {page} has been already saved for game {game.name} (wrong resume index?)')
                 continue
-
-        game.sales.append(current_sale)
-
-        if game.price != 0:
-            print(f'Sale page #{page}: games are not discounted by 100%')
-            break
+        
+        if not force:
+            game.sales.append(current_sale)
+        else:
+            sale_already_exists = False
+            for i, sale in enumerate(game.sales):
+                if sale.id == page:
+                    sale_already_exists = True
+                    game.sales[i] = current_sale
+                    print(f'Sale page {page}: Updated values for game {game.name} ({game.id})')
+                    break
+            if not sale_already_exists:
+                game.sales.append(current_sale)
+                game.sales.sort(key=lambda a: a.id)
 
         games_num += 1
         game.save_to_disk()
