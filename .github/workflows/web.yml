@@ -47,7 +47,7 @@ jobs:
           restore-keys: |
             ${{ env.cache-name }}
       - name: Refresh sales from itch.io
-        run: python itchclaim.py refresh_sale_cache --games_dir web/data/ --sales [${{ github.event.inputs.sales }}]
+        run: python itchclaim.py refresh_sale_cache --games_dir web/data/ --sales "[${{ github.event.inputs.sales }}]"
       - name: Generate index.html and JSON data
         run: python itchclaim.py generate_web --web_dir web/
       - name: Upload Page
