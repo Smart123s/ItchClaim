@@ -78,20 +78,19 @@ def generate_web(games: List[ItchGame], web_dir: str):
 def generate_rows(games: List[ItchGame], type: str) -> List[str]:
     rows: List[str] = []
     for game in games:
-        if game.claimable == False:
-            claimable_text = 'Not claimable'
-            claimable_icon = '&#x274C;'
-        elif game.claimable == True:
+        if type == 'active':
+            sale_date = game.active_sale.end
+            claimable = game.active_sale.claimable
+        elif type == 'upcoming':
+            sale_date = game.last_upcoming_sale.start
+            claimable = game.last_upcoming_sale.claimable
+
+        if claimable:
             claimable_text = 'claimable'
             claimable_icon = '&#x2714;'
         else:
-            claimable_text = 'Unknown'
-            claimable_icon = '&#x1F551;'
-        
-        if type == 'active':
-            sale_date = game.active_sale.end
-        elif type == 'upcoming':
-            sale_date = game.last_upcoming_sale.start
+            claimable_text = 'Not claimable'
+            claimable_icon = '&#x274C;'
 
         rows.append(ROW_TEMPLATE.substitute(
             name = game.name,

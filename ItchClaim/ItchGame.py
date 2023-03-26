@@ -74,7 +74,6 @@ class ItchGame:
             'name': self.name,
             'url': self.url,
             'price': self.price,
-            'claimable': self.claimable,
             'sales': ItchSale.serialize_list(self.sales),
             'cover_image': self.cover_image,
         }
@@ -92,8 +91,6 @@ class ItchGame:
         self.url = data['url']
         self.price = data['price']
         self.sales = [ ItchSale.from_dict(sale) for sale in data['sales'] ]
-        if data['claimable'] is not None:
-            self.claimable = data['claimable']
         self.cover_image = data['cover_image']
 
         # save game is sale status was updated
@@ -143,22 +140,11 @@ class ItchGame:
         sessionfilename = f'{self.id}.json'
         return os.path.join(ItchGame.games_dir, sessionfilename)
 
-    @cached_property
+    @property
     def claimable(self) -> bool:
         if not self.active_sale:
-            return None
-        r = requests.get(self.url, timeout=8)
-        r.encoding = 'utf-8'
-        soup = BeautifulSoup(r.text, 'html.parser')
-        buy_row = soup.find('div', class_='buy_row')
-        if buy_row is None:
-            # Game is probably WebGL or HTML5 only
             return False
-        buy_box = buy_row.find('a', class_='button buy_btn')
-        if 'Buy Now' in buy_box.text:
-            return None
-        claimable = buy_box.text == 'Download or claim'
-        return claimable
+        return self.active_sale.claimable
 
     @cached_property
     def active_sale(self) -> ItchSale:
@@ -255,6 +241,5 @@ class ItchGame:
             'id': self.id,
             'name': self.name,
             'url': self.url,
-            'claimable': self.claimable,
             'sales': ItchSale.serialize_list(self.sales),
         }

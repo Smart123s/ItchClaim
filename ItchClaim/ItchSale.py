@@ -8,10 +8,11 @@ from . import __version__
 
 
 class ItchSale:
-    def __init__(self, id: int, end: datetime = None, start: datetime = None) -> None:
+    def __init__(self, id: int, end: datetime = None, start: datetime = None, claimable: bool = False) -> None:
         self.id: int = id
         self.end: datetime = end
         self.start: datetime = start
+        self.claimable: bool = claimable
         self.err: str = None
 
         if not start or not end:
@@ -42,6 +43,7 @@ class ItchSale:
         sale_data = json.loads(re.findall(r'new I\.SalePage.+, (.+)\);I', r.text)[0])
         self.start = datetime.strptime(sale_data['start_date'], date_format)
         self.end = datetime.strptime(sale_data['end_date'], date_format)
+        self.claimable = sale_data['can_be_bought']
 
         if self.id != sale_data['id']:
             raise ValueError(f'Sale ID mismatch in parsed <script> tag. Excepted {self.id}')
@@ -52,6 +54,7 @@ class ItchSale:
             'id': self.id,
             'start': int(self.start.timestamp()),
             'end': int(self.end.timestamp()),
+            'claimable': self.claimable,
         }
 
 
@@ -61,7 +64,8 @@ class ItchSale:
             id = dict['id']
             start = datetime.fromtimestamp(dict['start'])
             end = datetime.fromtimestamp(dict['end'])
-            return ItchSale(id, start=start, end=end)
+            claimable = dict['claimable']
+            return ItchSale(id, start=start, end=end, claimable=claimable)
         except KeyError:
             # Data gathered before v1.3 may not contain all fields
             print(f'Refreshing missing data for sale {id}')
