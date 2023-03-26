@@ -1,3 +1,5 @@
+import json
+import re
 from typing import List
 from datetime import datetime
 import requests
@@ -39,19 +41,13 @@ class ItchSale:
                 self.err = '404_NOT_FOUND'
             return
 
+        # Used by DiskManager.get_one_sale()
         self.soup = BeautifulSoup(r.text, 'html.parser')
 
         date_format = '%Y-%m-%dT%H:%M:%SZ'
-        sale_date_raw = self.soup.find('span', class_='date_format').text
-        sale_date = datetime.strptime(sale_date_raw, date_format)
-
-        # Is the date shown on the site a start or an end?
-        not_active_div = self.soup.find('div', class_="not_active_notification")
-        if not_active_div and 'Come back ' in not_active_div.text:
-            self.start = sale_date
-        else:
-            self.end = sale_date
-
+        sale_data = json.loads(re.findall(r'new I\.SalePage.+, (.+)\);I', r.text)[0])
+        self.start = datetime.strptime(sale_data['start_date'], date_format)
+        self.end = datetime.strptime(sale_data['end_date'], date_format)
 
     def serialize(self):
         dict = {
