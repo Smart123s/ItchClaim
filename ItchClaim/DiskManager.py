@@ -32,7 +32,7 @@ def get_all_sales(start: int) -> List[ItchGame]:
     Args:
         start (int): the ID of the first sale to download
     """
-    page = start
+    page = start - 1
     games_num = 0
     while True:
         page += 1

@@ -48,7 +48,7 @@ class ItchClaim:
         Args:
             games_dir (str): Output directory
             sales: (List[int]): Only refresh the sales specified in this list"""
-        resume = 0
+        resume = 1
         ItchGame.games_dir = games_dir
         os.makedirs(games_dir, exist_ok=True)
 
