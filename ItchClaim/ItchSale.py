@@ -67,6 +67,17 @@ class ItchSale:
             print(f'Refreshing missing data for sale {id}')
             sale = ItchSale(id)
 
+            # If the sale was removed (page returned 404) give fill it with data
+            if sale.err:
+                if not 'end' in dict:
+                    sale.start = datetime.fromtimestamp(dict['start'])
+                    sale.end = sale.start
+                    print(f'Warning: {id} was removed from itch.io. Setting it\'s end date to it\'s start date')
+                elif not 'start' in dict:
+                    sale.end = datetime.fromtimestamp(dict['end'])
+                    sale.start = sale.end
+                    print(f'Warning: {id} was removed from itch.io. Setting it\'s start date to it\'s end date')
+            
             # Make ItchGame save the updates to the disk
             sale.err = 'STATUS_UPDATED'
             return sale
