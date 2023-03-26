@@ -8,11 +8,10 @@ from . import __version__
 
 
 class ItchSale:
-    def __init__(self, id: int, end: datetime = None, start: datetime = None, first: bool = False) -> None:
+    def __init__(self, id: int, end: datetime = None, start: datetime = None) -> None:
         self.id: int = id
         self.end: datetime = end
         self.start: datetime = start
-        self.first: bool = first
         self.err: str = None
 
         if not start or not end:
