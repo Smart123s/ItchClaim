@@ -45,7 +45,7 @@ def generate_web(games: List[ItchGame], web_dir: str):
 
     # ======= HTML =======
 
-    active_sales = list(filter(lambda game: game.is_sale_active, games))
+    active_sales = list(filter(lambda game: game.active_sale, games))
     active_sales_rows = generate_rows(active_sales, 'active')
 
     upcoming_sales = list(filter(lambda game: game.last_upcoming_sale, games))
@@ -89,7 +89,7 @@ def generate_rows(games: List[ItchGame], type: str) -> List[str]:
             claimable_icon = '&#x1F551;'
         
         if type == 'active':
-            sale_date = game.closest_ending_sale.end
+            sale_date = game.active_sale.end
         elif type == 'upcoming':
             sale_date = game.last_upcoming_sale.start
 
