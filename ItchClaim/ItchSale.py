@@ -8,8 +8,6 @@ from . import __version__
 
 
 class ItchSale:
-    cached_sales = {}
-
     def __init__(self, id: int, end: datetime = None, start: datetime = None) -> None:
         self.id: int = id
         self.end: datetime = end
@@ -60,44 +58,9 @@ class ItchSale:
     @classmethod
     def from_dict(cls, dict: dict):
         id = dict['id']
-        try:
-            err = None
-            if dict['start'] < 0:
-                dict['start'] = 0
-                err = 'STATUS_UPDATED'
-                print(f'Sale {id} start date was below zero. Fixing it.')
-            if dict['end'] < 0:
-                dict['end'] = 0
-                err = 'STATUS_UPDATED'
-                print(f'Sale {id} end date was below zero. Fixing it.')
-            start = datetime.fromtimestamp(dict['start'])
-            end = datetime.fromtimestamp(dict['end'])
-            sale = ItchSale(id, start=start, end=end)
-            sale.err = err
-            return sale
-        except KeyError:
-            # Data gathered before v1.3 may not contain all fields
-            print(f'Refreshing missing data for sale {id}')
-            if (id in ItchSale.cached_sales):
-                print('Found in cache')
-                return ItchSale.cached_sales[id]
-            sale = ItchSale(id)
-
-            # If the sale was removed (page returned 404) give fill it with data
-            if sale.err:
-                if not 'end' in dict:
-                    sale.start = datetime.fromtimestamp(dict['start'])
-                    sale.end = sale.start
-                    print(f'Warning: {id} was removed from itch.io. Setting it\'s end date to it\'s start date')
-                elif not 'start' in dict:
-                    sale.end = datetime.fromtimestamp(dict['end'])
-                    sale.start = sale.end
-                    print(f'Warning: {id} was removed from itch.io. Setting it\'s start date to it\'s end date')
-            
-            # Make ItchGame save the updates to the disk
-            sale.err = 'STATUS_UPDATED'
-            ItchSale.cached_sales[id] = sale
-            return sale
+        start = datetime.fromtimestamp(dict['start'])
+        end = datetime.fromtimestamp(dict['end'])
+        return ItchSale(id, start=start, end=end)
 
 
     @staticmethod

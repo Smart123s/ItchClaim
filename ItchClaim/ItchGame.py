@@ -95,13 +95,6 @@ class ItchGame:
         if data['claimable'] is not None:
             self.claimable = data['claimable']
         self.cover_image = data['cover_image']
-
-        # save game is sale status was updated
-        for sale in self.sales:
-            if sale.err == 'STATUS_UPDATED':
-                self.save_to_disk()
-                break
-
         return self
 
     @classmethod
