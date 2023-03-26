@@ -61,9 +61,20 @@ class ItchSale:
     def from_dict(cls, dict: dict):
         id = dict['id']
         try:
+            err = None
+            if dict['start'] < 0:
+                dict['start'] = 0
+                err = 'STATUS_UPDATED'
+                print(f'Sale {id} start date was below zero. Fixing it.')
+            if dict['end'] < 0:
+                dict['end'] = 0
+                err = 'STATUS_UPDATED'
+                print(f'Sale {id} end date was below zero. Fixing it.')
             start = datetime.fromtimestamp(dict['start'])
             end = datetime.fromtimestamp(dict['end'])
-            return ItchSale(id, start=start, end=end)
+            sale = ItchSale(id, start=start, end=end)
+            sale.err = err
+            return sale
         except KeyError:
             # Data gathered before v1.3 may not contain all fields
             print(f'Refreshing missing data for sale {id}')
