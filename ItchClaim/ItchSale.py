@@ -8,6 +8,8 @@ from . import __version__
 
 
 class ItchSale:
+    cached_sales = {}
+
     def __init__(self, id: int, end: datetime = None, start: datetime = None) -> None:
         self.id: int = id
         self.end: datetime = end
@@ -65,6 +67,9 @@ class ItchSale:
         except KeyError:
             # Data gathered before v1.3 may not contain all fields
             print(f'Refreshing missing data for sale {id}')
+            if (id in ItchSale.cached_sales):
+                print('Found in cache')
+                return ItchSale.cached_sales[id]
             sale = ItchSale(id)
 
             # If the sale was removed (page returned 404) give fill it with data
@@ -80,6 +85,7 @@ class ItchSale:
             
             # Make ItchGame save the updates to the disk
             sale.err = 'STATUS_UPDATED'
+            ItchSale.cached_sales[id] = sale
             return sale
 
 
