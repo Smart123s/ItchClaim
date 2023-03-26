@@ -132,13 +132,9 @@ class ItchGame:
         game.cover_image = resp['cover_image']
 
         if resp['sale'] and resp['sale']['rate'] == 100:
-            date_format = '%Y-%m-%d %H:%M:%S'
-            end_date_raw = resp['sale']['end_date']
-            end_date = datetime.strptime(end_date_raw, date_format)
-
-            game.sales = [
-                ItchSale(game_id, end=end_date)
-            ]
+            # Don't even bother with parsing the end date, because the JSON we have doesn't have the start date of the sale,
+            # so ItchSale will update both dates regardless of what data we pass it here.
+            game.sales = [ItchSale(game_id)]
 
         return game
 
@@ -149,7 +145,7 @@ class ItchGame:
 
     @cached_property
     def claimable(self) -> bool:
-        if not self.closest_ending_sale:
+        if not self.active_sale:
             return None
         r = requests.get(self.url, timeout=8)
         r.encoding = 'utf-8'
@@ -164,25 +160,16 @@ class ItchGame:
         claimable = buy_box.text == 'Download or claim'
         return claimable
 
-    @property
-    def closest_ending_sale(self) -> ItchSale:
+    @cached_property
+    def active_sale(self) -> ItchSale:
         active_sales = list(filter(lambda a: a.is_active, self.sales))
         if len(active_sales) == 0:
             return None
         return min(active_sales, key=lambda a: a.end)
 
     @property
-    def is_sale_active(self) -> bool:
-        if not self.closest_ending_sale:
-            return False
-        return self.closest_ending_sale.is_active
-
-    @property
     def last_upcoming_sale(self) -> ItchSale:
-        sales_with_start = list(filter(lambda a: a.start, self.sales))
-        if len(sales_with_start) == 0:
-            return None
-        last_sale = max(sales_with_start, key=lambda a: a.start)
+        last_sale = max(self.sales, key=lambda a: a.start)
         if not last_sale.is_upcoming:
             return None
         return last_sale

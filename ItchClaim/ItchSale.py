@@ -15,12 +15,7 @@ class ItchSale:
         self.first: bool = first
         self.err: str = None
 
-        if not start and not end:
-            self.get_data_online()
-
-        # if sale was saved as upcoming but has started since then
-        elif self.start and not self.end and datetime.now() > self.start:
-            self.err = 'STATUS_UPDATED'
+        if not start or not end:
             self.get_data_online()
 
 
@@ -49,23 +44,33 @@ class ItchSale:
         self.start = datetime.strptime(sale_data['start_date'], date_format)
         self.end = datetime.strptime(sale_data['end_date'], date_format)
 
+        if self.id != sale_data['id']:
+            raise ValueError(f'Sale ID mismatch in parsed <script> tag. Excepted {self.id}')
+
+
     def serialize(self):
-        dict = {
+        return {
             'id': self.id,
+            'start': int(self.start.timestamp()),
+            'end': int(self.end.timestamp()),
         }
-        if self.start:
-            dict['start'] = int(self.start.timestamp())
-        if self.end:
-            dict['end'] = int(self.end.timestamp())
-        return dict
 
 
     @classmethod
-    def from_dict(self, dict: dict):
+    def from_dict(cls, dict: dict):
         id = dict['id']
-        start = datetime.fromtimestamp(dict['start']) if 'start' in dict else None
-        end = datetime.fromtimestamp(dict['end']) if 'end' in dict else None
-        return ItchSale(id, start=start, end=end)
+        try:
+            start = datetime.fromtimestamp(dict['start'])
+            end = datetime.fromtimestamp(dict['end'])
+            return ItchSale(id, start=start, end=end)
+        except KeyError:
+            # Data gathered before v1.3 may not contain all fields
+            print(f'Refreshing missing data for sale {id}')
+            sale = ItchSale(id)
+
+            # Make ItchGame save the updates to the disk
+            sale.err = 'STATUS_UPDATED'
+            return sale
 
 
     @staticmethod
@@ -75,11 +80,11 @@ class ItchSale:
 
     @property
     def is_active(self):
-        if self.end and datetime.now() < self.end:
+        if datetime.now() < self.end:
             return True
         return False
 
 
     @property
     def is_upcoming(self):
-        return self.start and datetime.now() < self.start
+        return datetime.now() < self.start
