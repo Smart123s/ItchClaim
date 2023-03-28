@@ -57,7 +57,7 @@ class ItchGame:
         price_element = div.find('div', attrs={'class': 'price_value'})
         # Some elements don't have a price defined
         if price_element != None:
-            price_str = re.findall("[-+]?(?:\d*\.\d+|\d+)", price_element.text)[0]
+            price_str = re.findall(r"[-+]?(?:\d*\.\d+|\d+)", price_element.text)[0]
             self.price = float(price_str)
         else:
             # some obscure games have no price (they are always free) and are also
