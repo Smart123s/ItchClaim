@@ -116,6 +116,10 @@ class ItchGame:
         r.encoding = 'utf-8'
         resp = json.loads(r.text)
 
+        if 'errors' in resp:
+            print(f'Failed to get game {url} from API: {resp["errors"][0]}')
+            return None
+
         game_id = resp['id']
         game = ItchGame(game_id)
 
