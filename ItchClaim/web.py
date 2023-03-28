@@ -46,6 +46,16 @@ def generate_web(games: List[ItchGame], web_dir: str):
     # ======= HTML =======
 
     active_sales = list(filter(lambda game: game.active_sale, games))
+
+    # filter always free sales from bundles
+    for game in active_sales:
+        if not game.claimable:
+            print(f'Processing game {game.name} ({game.url})')
+            api_data = ItchGame.from_api(game.url)
+            if api_data and len(api_data.sales) == 0:
+                print(f'Deleting game {game.name} ({game.id}) as it\'s always free.')
+                os.remove(game.get_default_game_filename())
+
     active_sales_rows = generate_rows(active_sales, 'active')
 
     upcoming_sales = list(filter(lambda game: game.last_upcoming_sale, games))
