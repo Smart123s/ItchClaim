@@ -63,7 +63,14 @@ class ItchGame:
             # some obscure games have no price (they are always free) and are also
             # discounted by 100% and are claimable, for example:
             # https://web.archive.org/web/20230308004149/https://itch.io/s/88108/100-discount
-            self.price = ItchGame.from_api(self.url).price
+            api_data = ItchGame.from_api(self.url)
+
+            # only 100% sales are collected by the from_api() method
+            # this filters free games in bundles, for example:
+            # https://web.archive.org/web/20230328044337/https://itch.io/s/92359/easter-sale
+            # https://web.archive.org/web/20230328044523/https://ninjadalua.itch.io/dvirus/data.json
+            if len(api_data.sales) != 0:
+                self.price = api_data.price
         return self
 
     def save_to_disk(self):
