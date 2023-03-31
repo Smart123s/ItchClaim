@@ -70,7 +70,7 @@ class ItchSale:
 
     @property
     def is_active(self):
-        if datetime.now() < self.end:
+        if datetime.now() < self.end and datetime.now() > self.start:
             return True
         return False
 
