@@ -116,7 +116,7 @@ def get_one_sale(page: int, force: bool = True) -> int:
         game.save_to_disk()
 
     if game.price == 0:
-        expired_str = '(inactive)' if current_sale.is_active else ''
+        expired_str = '(inactive)' if not current_sale.is_active else ''
         print(f'Sale page #{page}: added {len(games_raw)} games', expired_str)
     return games_num
 
