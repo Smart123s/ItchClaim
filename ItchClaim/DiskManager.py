@@ -20,8 +20,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import os, requests, json
 from typing import List
+import os
+import json
+import requests
+from bs4 import BeautifulSoup
 from .ItchGame import ItchGame
 from .ItchSale import ItchSale
 from . import __version__
@@ -119,6 +122,33 @@ def get_one_sale(page: int, force: bool = True) -> int:
         expired_str = '(inactive)' if not current_sale.is_active else ''
         print(f'Sale page #{page}: added {len(games_raw)} games', expired_str)
     return games_num
+
+def get_online_sale_page(page: int, category: str = 'games') -> List[ItchGame]:
+    """Get a page of the sales feed from itch.io, and collect the free ones
+    
+    Args:
+        page (int): the id of the page to load
+        category (str): the category of the items
+            Possible values: games, tools, game-assets, comics, books, physical-games,
+            soundtracks, game-mods, misc
+
+    Returns:
+        List[ItchGame]: The free games present on the page
+    """
+    r = requests.get(f"https://itch.io/{category}/newest/on-sale?page={page}&format=json",
+                    headers={'User-Agent': f'ItchClaim {__version__}'},
+                    timeout=8,)
+    html = json.loads(r.text)['content']
+    soup = BeautifulSoup(html, 'html.parser')
+    games_raw = soup.find_all('div', class_="game_cell")
+    games = []
+    for div in games_raw:
+        game_parsed = ItchGame.from_div(div)
+        if game_parsed.price == 0:
+            games.append(game_parsed)
+    if len(games) == 0 and json.loads(r.text)["num_items"] == 0:
+        return False
+    return games
 
 def load_all_games():
     """Load all games cached on the disk"""
