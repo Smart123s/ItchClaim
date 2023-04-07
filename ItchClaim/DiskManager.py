@@ -123,6 +123,26 @@ def get_one_sale(page: int, force: bool = True) -> int:
         print(f'Sale page #{page}: added {len(games_raw)} games', expired_str)
     return games_num
 
+def get_all_sale_pages(category: str = 'games') -> List[ItchGame]:
+    """Gets all the pages of the sales feed from itch.io, and collect the free ones
+
+    Args:
+        category (str): the category of the items
+            Possible values: games, tools, game-assets, comics, books, physical-games,
+            soundtracks, game-mods, misc
+
+    Returns:
+        List[ItchGame]: The free games present in the category
+    """
+    i = 0
+    current_games = get_online_sale_page(i, category=category)
+    games: List[ItchGame] = []
+    while current_games:
+        games.append(current_games)
+        i += 1
+        current_games = get_online_sale_page(i, category=category)
+    return games
+
 def get_online_sale_page(page: int, category: str = 'games') -> List[ItchGame]:
     """Get a page of the sales feed from itch.io, and collect the free ones
     
