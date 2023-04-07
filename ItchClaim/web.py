@@ -43,6 +43,14 @@ def generate_web(games: List[ItchGame], web_dir: str):
     template = Template(pkg_resources.read_text(__package__, 'index.template.html'))
     games.sort(key=lambda a: (-1*a.sales[-1].id, a.name))
 
+    # Load resume index
+
+    try:
+        with open(os.path.join(web_dir, 'data', 'resume_index.txt'), 'r', encoding='utf-8') as f:
+            resume_index = int(f.read())
+    except FileNotFoundError:
+        resume_index = 0
+
     # ======= HTML =======
 
     active_sales = list(filter(lambda game: game.active_sale, games))
@@ -55,6 +63,7 @@ def generate_web(games: List[ItchGame], web_dir: str):
             active_sales_rows = '\n'.join(active_sales_rows),
             upcoming_sales_rows = '\n'.join(upcoming_sales_rows),
             last_update = datetime.now().strftime(DATE_FORMAT),
+            last_sale = resume_index,
         )
 
     with open(os.path.join(web_dir, 'index.html'), 'w', encoding="utf-8") as f:
