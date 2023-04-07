@@ -124,27 +124,32 @@ def get_one_sale(page: int, force: bool = True) -> int:
     return games_num
 
 def get_all_sale_pages(category: str = 'games') -> List[ItchGame]:
-    """Gets all the pages of the sales feed from itch.io, and collect the free ones
+    """Gets all the pages of the sales feed from itch.io, and saves the missing games
 
     Args:
         category (str): the category of the items
             Possible values: games, tools, game-assets, comics, books, physical-games,
-            soundtracks, game-mods, misc
+            soundtracks, game-mods, misc"""
+    page = -1
+    games_num = 0
+    while True:
+        page += 1
+        try:
+            games_added = get_online_sale_page(page, category=category)
+            if games_added == -1:
+                break
+            else:
+                games_num += games_added
+        #pylint: disable=broad-exception-caught
+        except Exception as ex:
+            print(f'Failed to parse {category} sale page {page}. Reason: {ex}')
 
-    Returns:
-        List[ItchGame]: The free games present in the category
-    """
-    i = 0
-    current_games = get_online_sale_page(i, category=category)
-    games: List[ItchGame] = []
-    while current_games:
-        games.append(current_games)
-        i += 1
-        current_games = get_online_sale_page(i, category=category)
-    return games
+    print(f'Collecting sales from category {category} finished.',
+          f'Added a total of {games_num} {category}')
 
-def get_online_sale_page(page: int, category: str = 'games') -> List[ItchGame]:
-    """Get a page of the sales feed from itch.io, and collect the free ones
+def get_online_sale_page(page: int, category: str = 'games') -> int:
+    """Get a page of the sales feed from itch.io, and save the missing ones to the disk.
+    Supposed to be ran after get_all_sales() to catch updated sales.
     
     Args:
         page (int): the id of the page to load
@@ -153,8 +158,9 @@ def get_online_sale_page(page: int, category: str = 'games') -> List[ItchGame]:
             soundtracks, game-mods, misc
 
     Returns:
-        List[ItchGame]: The free games present on the page
+        int: The number of games updated
     """
+    print(f'Processing {category} sale page #{page}')
     r = requests.get(f"https://itch.io/{category}/newest/on-sale?page={page}&format=json",
                     headers={'User-Agent': f'ItchClaim {__version__}'},
                     timeout=8,)
@@ -162,13 +168,31 @@ def get_online_sale_page(page: int, category: str = 'games') -> List[ItchGame]:
     soup = BeautifulSoup(html, 'html.parser')
     games_raw = soup.find_all('div', class_="game_cell")
     games = []
+    games_added = 0
     for div in games_raw:
-        game_parsed = ItchGame.from_div(div)
-        if game_parsed.price == 0:
-            games.append(game_parsed)
+        game = ItchGame.from_div(div)
+        if game.price == 0:
+            # Save game if it's new to us
+            if not os.path.exists(game.get_default_game_filename()):
+                # Call API to get active sale
+                ItchGame.from_api(game.url).save_to_disk()
+                print(f'Saved new {category} {game.name} ({game.url})')
+                games_added += 1
+                continue
+
+            # load previously saved sales
+            game = ItchGame.load_from_disk(game.get_default_game_filename())
+            if not game.active_sale:
+                # Call API to get active sale
+                sale = ItchGame.from_api(game.url).active_sale
+                game.sales.append(sale)
+                game.sales.sort(key=lambda a: a.id)
+                game.save_to_disk()
+                print(f'Updated values for {category} {game.name} ({game.url})')
+                games_added += 1
     if len(games) == 0 and json.loads(r.text)["num_items"] == 0:
-        return False
-    return games
+        return -1
+    return games_added
 
 def load_all_games():
     """Load all games cached on the disk"""
