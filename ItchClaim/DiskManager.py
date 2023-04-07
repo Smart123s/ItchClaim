@@ -182,14 +182,17 @@ def get_online_sale_page(page: int, category: str = 'games') -> int:
 
             # load previously saved sales
             game = ItchGame.load_from_disk(game.get_default_game_filename())
-            if not game.active_sale:
-                # Call API to get active sale
-                sale = ItchGame.from_api(game.url).active_sale
-                game.sales.append(sale)
-                game.sales.sort(key=lambda a: a.id)
-                game.save_to_disk()
-                print(f'Updated values for {category} {game.name} ({game.url})')
-                games_added += 1
+            if game.active_sale:
+                print(f'Skipping {category} {game.name} ({game.url}): already active sale found on disk')
+                continue
+
+            # Call API to get active sale
+            sale = ItchGame.from_api(game.url).active_sale
+            game.sales.append(sale)
+            game.sales.sort(key=lambda a: a.id)
+            game.save_to_disk()
+            print(f'Updated values for {category} {game.name} ({game.url})')
+            games_added += 1
     if len(games) == 0 and json.loads(r.text)["num_items"] == 0:
         return -1
     return games_added
