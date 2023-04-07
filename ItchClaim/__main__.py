@@ -67,6 +67,9 @@ class ItchClaim:
 
         DiskManager.get_all_sales(resume)
 
+        print('Updating games from sale lists, to catch updates of already known sales.')
+        DiskManager.get_all_sale_pages(category='games')
+
     def refresh_library(self):
         """Refresh the list of owned games of an account. This is used to skip claiming already owned games. Requires login.
         """
