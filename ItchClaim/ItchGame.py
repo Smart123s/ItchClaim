@@ -89,8 +89,14 @@ class ItchGame:
             f.write(json.dumps(data))
 
     @classmethod
-    def load_from_disk(cls, path: str):
-        """Load cached details about game from the disk"""
+    def load_from_disk(cls, path: str, refresh_claimable: bool = False):
+        """Load cached details about game from the disk
+        
+        Args:
+            path (str): The location of the JSON file that contains the data about the game
+            refresh_claimable (bool): Check claimability online again
+                Defaults to False
+            """
         with open(path, 'r', encoding='utf-8') as f:
             data = json.loads(f.read())
         id = data['id']
@@ -99,7 +105,7 @@ class ItchGame:
         self.url = data['url']
         self.price = data['price']
         self.sales = [ ItchSale.from_dict(sale) for sale in data['sales'] ]
-        if data['claimable'] is not None:
+        if data['claimable'] is not None and not refresh_claimable:
             self.claimable = data['claimable']
         self.cover_image = data['cover_image']
         return self

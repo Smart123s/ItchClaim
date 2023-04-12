@@ -95,7 +95,7 @@ def get_one_sale(page: int, force: bool = True) -> int:
 
         # load previously saved sales
         if os.path.exists(game.get_default_game_filename()):
-            disk_game: ItchGame = ItchGame.load_from_disk(game.get_default_game_filename())
+            disk_game: ItchGame = ItchGame.load_from_disk(game.get_default_game_filename(), refresh_claimable=True)
             game.sales = disk_game.sales
             if game.sales[-1].id == page and not force:
                 print(f'Sale {page} has been already saved for game {game.name} (wrong resume index?)')
@@ -181,7 +181,7 @@ def get_online_sale_page(page: int, category: str = 'games') -> int:
                 continue
 
             # load previously saved sales
-            game = ItchGame.load_from_disk(game.get_default_game_filename())
+            game = ItchGame.load_from_disk(game.get_default_game_filename(), refresh_claimable=True)
             if game.active_sale:
                 print(f'Skipping {category} {game.name} ({game.url}): already active sale found on disk')
                 continue
