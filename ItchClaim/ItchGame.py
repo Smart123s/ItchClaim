@@ -41,8 +41,14 @@ class ItchGame:
         self.cover_image: str = None
 
     @classmethod
-    def from_div(cls, div: Tag):
-        """Create an ItchGame Instance from a div that's found in the sale page or the my purchases page"""
+    def from_div(cls, div: Tag, price_needed: bool = False):
+        """Create an ItchGame Instance from a div that's found in tables on itch.io.
+        These can usually be found on the sale or the my purchases page.
+        
+        Args
+            div (Tag): A bs4 div element, containing the data of a game
+            price_needed (bool): wether to send another request to the API if the div has no
+                information about the price"""
         id = int(div.attrs['data-game_id'])
         self = ItchGame(id)
         a = div.find('a', class_='title game_link')
@@ -59,7 +65,7 @@ class ItchGame:
         if price_element != None:
             price_str = re.findall(r"[-+]?(?:\d*\.\d+|\d+)", price_element.text)[0]
             self.price = float(price_str)
-        else:
+        elif price_needed:
             # some obscure games have no price (they are always free) and are also
             # discounted by 100% and are claimable, for example:
             # https://web.archive.org/web/20230308004149/https://itch.io/s/88108/100-discount

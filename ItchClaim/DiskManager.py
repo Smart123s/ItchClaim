@@ -83,7 +83,7 @@ def get_one_sale(page: int, force: bool = True) -> int:
         return 0
 
     for div in games_raw:
-        game: ItchGame = ItchGame.from_div(div)
+        game: ItchGame = ItchGame.from_div(div, price_needed=True)
 
         if game.price != 0:
             print(f'Sale page #{page}: games are not discounted by 100%')
@@ -170,7 +170,7 @@ def get_online_sale_page(page: int, category: str = 'games') -> int:
     games = []
     games_added = 0
     for div in games_raw:
-        game = ItchGame.from_div(div)
+        game = ItchGame.from_div(div, price_needed=True)
         if game.price == 0:
             # Save game if it's new to us
             if not os.path.exists(game.get_default_game_filename()):
