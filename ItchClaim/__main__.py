@@ -26,20 +26,29 @@ from fire import Fire
 
 from .web import generate_web
 from . import DiskManager
+from . import __version__
 from .ItchUser import ItchUser
 from .ItchGame import ItchGame
 
 # pylint: disable=missing-class-docstring
 class ItchClaim:
     def __init__(self,
+                version: bool = False,
                 login: str = None,
                 password: str = None,
                 totp: str = None):
         """Automatically claim free games from itch.io"""
+        if version:
+            self.version()
         if login is not None:
             self.login(login, password, totp)
         else:
             self.user = None
+
+    def version(self):
+        """Display the version of the script and exit"""
+        print(__version__)
+        exit(0)
 
     def refresh_sale_cache(self, games_dir: str = 'web/data/', sales: List[int] = None):
         """Refresh the cache about game sales
