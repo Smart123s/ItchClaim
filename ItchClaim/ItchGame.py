@@ -136,6 +136,12 @@ class ItchGame:
         resp = json.loads(r.text)
 
         if 'errors' in resp:
+            if resp['errors'][0] in ('invalid game', 'invalid user'):
+                # Check if the game's URL has been changed
+                mock_game = ItchGame(-1)
+                mock_game.url = url
+                if mock_game.check_redirect_url():
+                    return ItchGame.from_api(mock_game.url)
             print(f'Failed to get game {url} from API: {resp["errors"][0]}')
             return None
 
@@ -143,6 +149,8 @@ class ItchGame:
         game = ItchGame(game_id)
 
         game.url = url
+        if r.history[0].is_redirect:
+            game.url = r.history[0].headers['Location'].replace('/data.json', '')
         game.price = float(resp['price'][1:])
         game.name = resp['title']
         game.cover_image = resp['cover_image']
@@ -274,3 +282,18 @@ class ItchGame:
             'claimable': self.claimable,
             'sales': ItchSale.serialize_list(self.sales),
         }
+
+    def check_redirect_url(self):
+        """Checks if a new URL is available for the game, and updates the current one
+        Sends an HTTP HEAD requests to the original game's page, and follows HTTP 3xx redirects
+
+        Returns:
+            bool: True if a new URL is found"""
+        resp_redirect = requests.head(self.url)
+        if not resp_redirect.is_redirect:
+            return False
+        self.url = resp_redirect.next.url
+        if 'claimable' in self.__dict__.keys():
+            del self.__dict__['claimable']
+        print(f"WARN: URL of game {self.name} has changed to {self.url}")
+        return True

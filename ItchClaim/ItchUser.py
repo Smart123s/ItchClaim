@@ -138,6 +138,10 @@ class ItchUser:
         r.encoding = 'utf-8'
         resp = json.loads(r.text)
         if 'errors' in resp:
+            if resp['errors'][0] in ('invalid game', 'invalid user'):
+                if game.check_redirect_url():
+                    self.claim_game(game)
+                    return
             print(f"ERROR: Failed to claim game {game.name} (url: {game.url})")
             print(f"\t{resp['errors'][0]}")
             return
