@@ -149,7 +149,7 @@ class ItchGame:
         game = ItchGame(game_id)
 
         game.url = url
-        if r.history[0].is_redirect:
+        if len(r.history) > 0 and r.history[0].is_redirect:
             game.url = r.history[0].headers['Location'].replace('/data.json', '')
         game.price = float(resp['price'][1:])
         game.name = resp['title']
