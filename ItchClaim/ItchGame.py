@@ -149,6 +149,13 @@ class ItchGame:
         game = ItchGame(game_id)
 
         game.url = url
+
+        # check for redirects in the request
+        # sometimes it redirects /data.json requests, sometimes it doesn't
+        # With redirect example: https://vronti.itch.io/hp-bar-assets-pack
+        # https://web.archive.org/web/20231107063207/https://daions-studio.itch.io/hp-bar-assets-pack/data.json
+        # Without redirect example: https://polygon-sphere.itch.io/rogue-ai/data.json
+        # https://web.archive.org/web/20231107063001/https://polygon-sphere.itch.io/rogue-ai/data.json
         if len(r.history) > 0 and r.history[0].is_redirect:
             game.url = r.history[0].headers['Location'].replace('/data.json', '')
         game.price = float(resp['price'][1:])
