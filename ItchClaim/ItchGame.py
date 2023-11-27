@@ -175,7 +175,7 @@ class ItchGame:
         return os.path.join(ItchGame.games_dir, sessionfilename)
 
     @cached_property
-    def claimable(self) -> bool:
+    def claimable(self) -> bool|None:
         if not self.active_sale:
             return None
         r = requests.get(self.url, timeout=8)
@@ -186,6 +186,9 @@ class ItchGame:
             # Game is probably WebGL or HTML5 only
             return False
         buy_box = buy_row.find('a', class_='button buy_btn')
+        if buy_box is None:
+            # No buy button is visible, so it's probably not claimable
+            return False
         if 'Buy Now' in buy_box.text:
             return None
         claimable = buy_box.text == 'Download or claim'
