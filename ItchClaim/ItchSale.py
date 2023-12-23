@@ -39,7 +39,7 @@ class ItchSale:
         self.soup = BeautifulSoup(r.text, 'html.parser')
 
         date_format = '%Y-%m-%dT%H:%M:%SZ'
-        sale_data = json.loads(re.findall(r'init_Sale.+, (.+)\);I', r.text)[0])
+        sale_data = json.loads(re.findall(r'init_Sale.+, (.+)\);i', r.text)[0])
         self.start = datetime.strptime(sale_data['start_date'], date_format)
         self.end = datetime.strptime(sale_data['end_date'], date_format)
 
