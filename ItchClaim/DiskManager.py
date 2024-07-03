@@ -164,6 +164,9 @@ def get_online_sale_page(page: int, category: str = 'games') -> int:
     r = requests.get(f"https://itch.io/{category}/newest/on-sale?page={page}&format=json",
                     headers={'User-Agent': f'ItchClaim {__version__}'},
                     timeout=8,)
+    if r.status_code == 404:
+        print('Page returned 404.')
+        return -1
     html = json.loads(r.text)['content']
     soup = BeautifulSoup(html, 'html.parser')
     games_raw = soup.find_all('div', class_="game_cell")
