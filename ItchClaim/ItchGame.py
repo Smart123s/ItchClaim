@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 from functools import cached_property
 import json, requests, re, urllib, os
 from bs4.element import Tag
@@ -175,7 +175,7 @@ class ItchGame:
         return os.path.join(ItchGame.games_dir, sessionfilename)
 
     @cached_property
-    def claimable(self) -> bool|None:
+    def claimable(self) -> Optional[bool]:
         if not self.active_sale:
             return None
         r = requests.get(self.url, timeout=8)
