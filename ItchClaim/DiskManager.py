@@ -130,7 +130,7 @@ def get_all_sale_pages(category: str = 'games') -> List[ItchGame]:
         category (str): the category of the items
             Possible values: games, tools, game-assets, comics, books, physical-games,
             soundtracks, game-mods, misc"""
-    page = -1
+    page = 0
     games_num = 0
     while True:
         page += 1

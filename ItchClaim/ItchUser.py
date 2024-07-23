@@ -183,12 +183,12 @@ class ItchUser:
     def reload_owned_games(self):
         """Reload the cache of the user's library"""
         self.owned_games = []
-        for i in range(int(1e18)):
+        for i in range(int(1e18), 1):
             page = self.get_one_library_page(i)
             if len(page) == 0:
                 break
             self.owned_games.extend(page)
-            print (f'Library page #{i+1}: added {len(page)} games (total: {len(self.owned_games)})')
+            print (f'Library page #{i}: added {len(page)} games (total: {len(self.owned_games)})')
 
     @staticmethod
     def get_users_dir() -> str:
