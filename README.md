@@ -27,6 +27,14 @@ If you don't have access to an interactive shell, you can provide you password v
 itchclaim --login <username> --password <password> --totp <2FA code or secret>
 ```
 
+### Start a never ending process that claims at a schedule
+Uses cron syntax. For help, visit [crontab.guru](https://crontab.guru).
+Can be useful in docker to create an always running container.
+Recommended schedule based on [ItchClaim's online update schedule](https://github.com/Smart123s/ItchClaim/blob/6704228164afa65a6501d5a2375aa2bc0a12e117/.github/workflows/web.yml#L21): `28 0,6,12,18 * * *`.
+```bash
+itchclaim --login <username> schedule --cron "28 0,6,12,18 * * *"
+```
+
 ### Refresh Library
 ```bash
 itchclaim --login <username> refresh_library

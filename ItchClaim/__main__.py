@@ -21,14 +21,17 @@
 # SOFTWARE.
 
 import os
+from time import sleep
 from typing import List
+
+import pycron
 from fire import Fire
 
-from .web import generate_web
-from . import DiskManager
-from . import __version__
-from .ItchUser import ItchUser
+from . import DiskManager, __version__
 from .ItchGame import ItchGame
+from .ItchUser import ItchUser
+from .web import generate_web
+
 
 # pylint: disable=missing-class-docstring
 class ItchClaim:
@@ -117,6 +120,21 @@ class ItchClaim:
                 claimed_games += 1
         if claimed_games == 0:
             print('No new games can be claimed.')
+
+    def schedule(self, cron: str, url: str = 'https://itchclaim.tmbpeter.com/api/active.json'):
+        """Start an infinite process of the script that claims games at a given schedule.
+        Args:
+            cron (str): The cron schedule to claim games
+                See crontab.guru for syntax
+            url (str): The URL to download the file from"""
+        print(f'Starting cron job with schedule {cron}')
+        while True:
+            if not pycron.is_now(cron):
+                sleep(60)
+                continue
+            self.claim(url)
+            sleep(60)
+        
 
     def download_urls(self, game_url: int):
         """Get details about a game, including it's CDN download URLs.
