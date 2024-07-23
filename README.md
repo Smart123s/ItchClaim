@@ -35,6 +35,12 @@ Recommended schedule based on [ItchClaim's online update schedule](https://githu
 itchclaim --login <username> schedule --cron "28 0,6,12,18 * * *"
 ```
 
+### Load credentials form environment variable
+If no credentials are provided via command line arguments, the script checks the following environment variables:
+ - `ITCH_USERNAME` (equivalent of `--login <username>` flag)
+ - `ITCH_PASSWORD` (equivalent of `--password <password>` flag)
+ - `ITCH_TOTP` (equivalent of `--totp <2FA code or secret>` flag)
+
 ### Refresh Library
 ```bash
 itchclaim --login <username> refresh_library

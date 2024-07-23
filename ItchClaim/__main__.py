@@ -43,6 +43,9 @@ class ItchClaim:
         """Automatically claim free games from itch.io"""
         if version:
             self.version()
+        # Try loading username from environment variables if not provided as command line argument
+        if login is None and os.getenv('ITCH_USERNAME') is not None:
+            login = os.getenv('ITCH_USERNAME')
         if login is not None:
             self.login(login, password, totp)
         else:
@@ -178,6 +181,12 @@ class ItchClaim:
             self.user.load_session()
             print(f'Session {username} loaded successfully')
         except FileNotFoundError:
+            # Try loading password from environment variables if not provided as command line argument
+            if password is None:
+                password = os.getenv('ITCH_PASSWORD')
+            # Try loading TOTP from environment variables if not provided as command line argument
+            if totp is None:
+                totp = os.getenv('ITCH_TOTP')
             self.user.login(password, totp)
             print(f'Logged in as {username}')
 
