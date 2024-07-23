@@ -65,26 +65,35 @@ class ItchUser:
             print(f'Error while logging in: ' + errors_div.find('li').text)
             exit(1)
 
+        self.user_id = soup.find_all(attrs={"name": "user_id"})[0]['value']
         if r.url.find('totp/') != -1:
             if totp is None:
                 totp = input('Enter 2FA code: ')
-            if len(totp) != 6:
-                totp = pyotp.TOTP(totp).now()
-            data = {
-                'csrf_token': self.csrf_token,
-                'userid': soup.find_all(attrs={"name": "user_id"})[0]['value'],
-                'code': int(totp),
-            }
-            r = self.s.post(r.url, params=data)
-            r.encoding = 'utf-8'
-            soup = BeautifulSoup(r.text, 'html.parser')
-
-            errors_div = soup.find('div', class_='form_errors')
-            if errors_div:
-                print(f'Error while logging in: ' + errors_div.find('li').text)
-                exit(1)
-
+            
+            self.send_top(totp, r.url)
         self.save_session()
+
+    def send_top(self, totp: str, url: str) -> None:
+        if len(totp) != 6:
+            totp_secret = totp
+            totp = pyotp.TOTP(totp).now()
+        data = {
+            'csrf_token': self.csrf_token,
+            'userid': self.user_id,
+            'code': int(totp),
+        }
+        r = self.s.post(url, params=data)
+        r.encoding = 'utf-8'
+        soup = BeautifulSoup(r.text, 'html.parser')
+
+        errors_div = soup.find('div', class_='form_errors')
+        if errors_div:
+            totp_new = pyotp.TOTP(totp_secret).now()
+            if totp_secret and totp_new != totp:
+                print(f'TOTP code changed (probably the 30 seconds have elapsed while sending it). Attempting with new code.')
+                return self.send_top(totp_new, r.url)
+            print(f'Error while logging in: ' + errors_div.find('li').text)
+            exit(1)
 
     def save_session(self):
         """Save session to disk"""
