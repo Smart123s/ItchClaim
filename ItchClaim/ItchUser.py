@@ -192,7 +192,7 @@ class ItchUser:
     def reload_owned_games(self):
         """Reload the cache of the user's library"""
         self.owned_games = []
-        for i in range(int(1e18), 1):
+        for i in range(1, int(1e18)):
             page = self.get_one_library_page(i)
             if len(page) == 0:
                 break
