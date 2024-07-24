@@ -45,6 +45,10 @@ def get_all_sales(start: int) -> List[ItchGame]:
                 break
             else:
                 games_num += games_added
+        except (requests.exceptions.ConnectionError) as ex:
+            print(f'A connection error has occurred while parsing sale page {page}. Reason: {ex}')
+            print('Aborting current sale refresh.')
+            exit(1)
         #pylint: disable=broad-exception-caught
         except Exception as ex:
             print(f'Failed to parse sale page {page}. Reason: {ex}')
@@ -140,6 +144,10 @@ def get_all_sale_pages(category: str = 'games') -> List[ItchGame]:
                 break
             else:
                 games_num += games_added
+        except requests.exceptions.ConnectionError as ex:
+            print(f'A connection error has occurred while parsing {category} sale page {page}. Reason: {ex}')
+            print('Aborting current sale refresh.')
+            exit(1)
         #pylint: disable=broad-exception-caught
         except Exception as ex:
             print(f'Failed to parse {category} sale page {page}. Reason: {ex}')
