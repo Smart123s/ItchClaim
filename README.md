@@ -41,6 +41,26 @@ If no credentials are provided via command line arguments, the script checks the
  - `ITCH_PASSWORD` (equivalent of `--password <password>` flag)
  - `ITCH_TOTP` (equivalent of `--totp <2FA code or secret>` flag)
 
+
+### Scheduling using docker-compose.yml
+Create an always running docker container, that claims new sales on a schedule.
+After you see `Logged in as <username>` in the logs, the `ITCH_PASSWORD` and `ITCH_TOTP` environment variables can be removed, as a session gets saved to the volume (`/data`).
+```yaml
+version: 3.8
+services:
+  itchclaim:
+    image: ghcr.io/smart123s/itchclaim
+    container_name: itchclaim
+    command: ["schedule", "--cron", "28 0,6,12,18 * * *"]
+    volumes:
+      - <PATH_TO_ITCHCLAIM_DATA_ON_HOST>:/data:rw
+    environment:
+      ITCH_USERNAME: "Smart123s"
+      ITCH_PASSWORD: "<PASSWORD>"
+      ITCH_TOTP: "<TOTP/2FA>"
+    restart: unless-stopped
+```
+
 ### Refresh Library
 ```bash
 itchclaim --login <username> refresh_library
