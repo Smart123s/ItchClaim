@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 import os
+import signal
 from time import sleep
 from typing import List
 
@@ -131,6 +132,17 @@ class ItchClaim:
                 See crontab.guru for syntax
             url (str): The URL to download the file from"""
         print(f'Starting cron job with schedule {cron}')
+
+        # Define the signal handler
+        def signal_handler(signum, frame):
+            print("Interrupt signal received. Exiting...")
+            exit(0)
+
+        # Register the signal handler
+        signal.signal(signal.SIGINT, signal_handler)
+        signal.signal(signal.SIGTERM, signal_handler)
+
+        # Start the scheduler
         while True:
             if not pycron.is_now(cron):
                 sleep(60)
