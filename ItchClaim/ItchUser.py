@@ -65,8 +65,8 @@ class ItchUser:
             print(f'Error while logging in: ' + errors_div.find('li').text)
             exit(1)
 
-        self.user_id = soup.find_all(attrs={"name": "user_id"})[0]['value']
         if r.url.find('totp/') != -1:
+            self.user_id = soup.find_all(attrs={"name": "user_id"})[0]['value']
             if totp is None:
                 totp = input('Enter 2FA code: ')
             
