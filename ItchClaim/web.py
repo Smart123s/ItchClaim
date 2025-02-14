@@ -80,9 +80,9 @@ def generate_web(games: List[ItchGame], web_dir: str):
         f.write(json.dumps(upcoming_sales_min))
 
     # ======= JSON (all sales) =======
-    all_min = [ game.serialize_min() for game in games ]
+    all_sales = [ game.serialize() for game in games ]
     with open(os.path.join(web_dir, 'api', 'all.json'), 'w', encoding="utf-8") as f:
-        f.write(json.dumps(all_min))
+        f.write(json.dumps(all_sales))
 
 def generate_rows(games: List[ItchGame], type: str) -> List[str]:
     rows: List[str] = []
