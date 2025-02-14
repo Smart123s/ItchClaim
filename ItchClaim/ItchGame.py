@@ -82,17 +82,8 @@ class ItchGame:
     def save_to_disk(self):
         """Save the details of game to the disk"""
         os.makedirs(ItchGame.games_dir, exist_ok=True)
-        data = {
-            'id': self.id,
-            'name': self.name,
-            'url': self.url,
-            'price': self.price,
-            'claimable': self.claimable,
-            'sales': ItchSale.serialize_list(self.sales),
-            'cover_image': self.cover_image,
-        }
         with open(self.get_default_game_filename(), 'w', encoding='utf-8') as f:
-            f.write(json.dumps(data))
+            f.write(json.dumps(self.serialize()))
 
     @classmethod
     def load_from_disk(cls, path: str, refresh_claimable: bool = False):
@@ -281,6 +272,18 @@ class ItchGame:
             'upload_date': upload_date.timestamp(),
             'platforms': platforms,
             'url': download_url,
+        }
+
+    def serialize(self):
+        """Returns a serialized object containing all information about the object"""
+        return {
+            'id': self.id,
+            'name': self.name,
+            'url': self.url,
+            'price': self.price,
+            'claimable': self.claimable,
+            'sales': ItchSale.serialize_list(self.sales),
+            'cover_image': self.cover_image,
         }
 
     def serialize_min(self):
