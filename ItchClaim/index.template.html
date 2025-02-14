@@ -28,10 +28,52 @@
                     text-decoration: none;
                 }
             }
-        </style>
+    </style>
+    <style>
+        .warning-box {
+            background-color: #ffeeba;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            max-width: min(800px, 90%);
+        }
+
+        /* Center on mobile */
+        @media only screen and (max-width: 800px) {
+            .warning-box {
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
+
+        .warning-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .warning-box {
+                background-color: #5a4a00;
+                border: 1px solid #ffc107;
+                color: #ffeb3b;
+            }
+        }
+    </style>
     </head>
     <body>
         <h1>Itch.io Free Games</h1>
+        <div class="warning-box">
+            <div class="warning-title">Warning: Site Update Paused</div>
+            <div class="warning-text">This site uses GitHub actions to collect data, and uses GitHub Pages to host the site.<br>
+                On 13 Feb, 2025, the repository's GitHub Actions cache and artifacts have been wiped.<br>
+                I didn't receive any notification about this, so I don't know if this was just a GitHub bot randomly deleting stuff,
+                or if this was requested by either Itch.io, or one of the developers whose games are listed here.<br>
+                Regardless, I don't want to risk my GitHub account getting banned, so I'm pausing the site update for now.<br>
+                I might look into hosting the site somewhere else, but there's no ETA for that.<br>
+            </div>
+        </div>
         <main>
             <div>
                 <h2>Active sales</h2>
