@@ -87,13 +87,14 @@ Generate a list of uploaded files and their download URLs for a game. These link
 
 #### Manually collect sales from itch.io
 ```bash
-itchclaim refresh_sale_cache --dir web/data/
+itchclaim refresh_sale_cache --dir web/data/ --sales "[1,2,3]"
 ```
 Request details about every single itch.io, and save the $0 ones to the disk.
 The initial run can take 12+ hours.
 
 #### Parameters
 - **dir:** Output directory
+- **sales:** (List[int]): Only refresh the sales specified in this list (Optional)
 
 ### Generate static website
 ```bash
