@@ -153,7 +153,7 @@ class ItchGame:
         game.name = resp['title']
         game.cover_image = resp['cover_image']
 
-        if resp['sale'] and resp['sale']['rate'] == 100:
+        if 'sale' in resp and resp['sale']['rate'] == 100:
             # Don't even bother with parsing the end date, because the JSON we have doesn't have the start date of the sale,
             # so ItchSale will update both dates regardless of what data we pass it here.
             game.sales = [ItchSale(resp['sale']['id'])]
