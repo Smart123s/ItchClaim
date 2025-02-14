@@ -75,7 +75,7 @@ class ItchGame:
             # this filters free games in bundles, for example:
             # https://web.archive.org/web/20230328044337/https://itch.io/s/92359/easter-sale
             # https://web.archive.org/web/20230328044523/https://ninjadalua.itch.io/dvirus/data.json
-            if len(api_data.sales) != 0:
+            if api_data is not None and len(api_data.sales) != 0:
                 self.price = api_data.price
         return self
 
@@ -149,7 +149,10 @@ class ItchGame:
         # https://web.archive.org/web/20231107063001/https://polygon-sphere.itch.io/rogue-ai/data.json
         if len(r.history) > 0 and r.history[0].is_redirect:
             game.url = r.history[0].headers['Location'].replace('/data.json', '')
-        game.price = float(resp['price'][1:])
+        try:
+            game.price = float(resp['price'][1:])
+        except KeyError:
+            game.price = None
         game.name = resp['title']
         game.cover_image = resp['cover_image']
 
