@@ -38,6 +38,11 @@ itchclaim = "ItchClaim.__main__:main"
 [tool.setuptools]
 packages = ["ItchClaim"]
 
+ # FIXME: this is a workaround; see:
+ #   - https://github.com/rst2pdf/rst2pdf/pull/1257/commits/e15dee4fba5dcc78c6991a8566c0b7ee603092bf
+ #   - https://github.com/pypa/setuptools/issues/4759
+ license-files = []
+
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
 version = {attr = "ItchClaim.__init__.__version__"}
