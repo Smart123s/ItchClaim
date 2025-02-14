@@ -29,15 +29,20 @@ from .ItchGame import ItchGame
 from .ItchSale import ItchSale
 from . import __version__
 
-def get_all_sales(start: int) -> List[ItchGame]:
+def get_all_sales(start: int, max_pages: int = -1) -> List[ItchGame]:
     """Download details about every sale posted on itch.io
 
     Args:
         start (int): the ID of the first sale to download
+        max_pages (int): the maximum number of pages to download. Set to -1 to download all pages.
     """
+
+    if max_pages == -1:
+        max_pages = 10e7
+
     page = start - 1
     games_num = 0
-    while True:
+    while page < start + max_pages:
         page += 1
         try:
             games_added = get_one_sale(page, force=False)
@@ -55,6 +60,9 @@ def get_all_sales(start: int) -> List[ItchGame]:
 
         with open(os.path.join(ItchGame.games_dir, 'resume_index.txt'), 'w', encoding='utf-8') as f:
             f.write(str(page))
+
+    if page >= start + max_pages:
+        print(f'Execution stopped because the maximum number of {max_pages} pages was reached')
 
     if games_num == 0:
         print('No new free games found')

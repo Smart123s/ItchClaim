@@ -57,13 +57,15 @@ class ItchClaim:
         print(__version__)
         exit(0)
 
-    def refresh_sale_cache(self, games_dir: str = 'web/data/', sales: List[int] = None):
+    def refresh_sale_cache(self, games_dir: str = 'web/data/', sales: List[int] = None, max_pages: int = -1):
         """Refresh the cache about game sales
         Opens itch.io and downloads sales posted after the last saved one.
 
         Args:
             games_dir (str): Output directory
-            sales: (List[int]): Only refresh the sales specified in this list"""
+            sales: (List[int]): Only refresh the sales specified in this list
+            max_pages (int): The maximum number of pages to download.
+                Default is -1, which means unlimited"""
         resume = 1
         ItchGame.games_dir = games_dir
         os.makedirs(games_dir, exist_ok=True)
@@ -81,7 +83,7 @@ class ItchClaim:
         except FileNotFoundError:
             print('Resume index not found. Downloading sales from beginning')
 
-        DiskManager.get_all_sales(resume)
+        DiskManager.get_all_sales(resume, max_pages=max_pages)
 
         print('Updating games from sale lists, to catch updates of already known sales.')
 
