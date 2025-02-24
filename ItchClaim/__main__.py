@@ -57,7 +57,13 @@ class ItchClaim:
         print(__version__)
         exit(0)
 
-    def refresh_sale_cache(self, games_dir: str = 'web/data/', sales: List[int] = None, max_pages: int = -1):
+    def refresh_sale_cache(
+            self,
+            games_dir: str = 'web/data/',
+            sales: List[int] = None,
+            max_pages: int = -1,
+            no_fail: bool = False,
+        ):
         """Refresh the cache about game sales
         Opens itch.io and downloads sales posted after the last saved one.
 
@@ -65,7 +71,8 @@ class ItchClaim:
             games_dir (str): Output directory
             sales: (List[int]): Only refresh the sales specified in this list
             max_pages (int): The maximum number of pages to download.
-                Default is -1, which means unlimited"""
+                Default is -1, which means unlimited
+            no_fail (bool): Continue downloading sales even if a page fails to load"""
         resume = 1
         ItchGame.games_dir = games_dir
         os.makedirs(games_dir, exist_ok=True)
@@ -83,14 +90,14 @@ class ItchClaim:
         except FileNotFoundError:
             print('Resume index not found. Downloading sales from beginning')
 
-        DiskManager.get_all_sales(resume, max_pages=max_pages)
+        DiskManager.get_all_sales(resume, max_pages=max_pages, no_fail=no_fail)
 
         print('Updating games from sale lists, to catch updates of already known sales.')
 
         for category in ['games', 'tools', 'game-assets', 'comics', 'books', 'physical-games',
                 'soundtracks', 'game-mods', 'misc']:
             print(f'Collecting sales from {category} list')
-            DiskManager.get_all_sale_pages(category=category)
+            DiskManager.get_all_sale_pages(category=category, no_fail=no_fail)
 
     def refresh_library(self):
         """Refresh the list of owned games of an account. This is used to skip claiming already

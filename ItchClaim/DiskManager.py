@@ -29,7 +29,7 @@ from .ItchGame import ItchGame
 from .ItchSale import ItchSale
 from . import __version__
 
-def get_all_sales(start: int, max_pages: int = -1) -> List[ItchGame]:
+def get_all_sales(start: int, max_pages: int = -1, no_fail: bool = False) -> List[ItchGame]:
     """Download details about every sale posted on itch.io
 
     Args:
@@ -53,7 +53,8 @@ def get_all_sales(start: int, max_pages: int = -1) -> List[ItchGame]:
         except (requests.exceptions.ConnectionError) as ex:
             print(f'A connection error has occurred while parsing sale page {page}. Reason: {ex}')
             print('Aborting current sale refresh.')
-            exit(1)
+            if not no_fail:
+                exit(1)
         #pylint: disable=broad-exception-caught
         except Exception as ex:
             print(f'Failed to parse sale page {page}. Reason: {ex}')
@@ -135,7 +136,7 @@ def get_one_sale(page: int, force: bool = True) -> int:
         print(f'Sale page #{page}: added {len(games_raw)} games', expired_str)
     return games_num
 
-def get_all_sale_pages(category: str = 'games') -> List[ItchGame]:
+def get_all_sale_pages(category: str = 'games', no_fail: bool =False) -> List[ItchGame]:
     """Gets all the pages of the sales feed from itch.io, and saves the missing games
 
     Args:
@@ -155,7 +156,8 @@ def get_all_sale_pages(category: str = 'games') -> List[ItchGame]:
         except requests.exceptions.ConnectionError as ex:
             print(f'A connection error has occurred while parsing {category} sale page {page}. Reason: {ex}')
             print('Aborting current sale refresh.')
-            exit(1)
+            if not no_fail:
+                exit(1)
         #pylint: disable=broad-exception-caught
         except Exception as ex:
             print(f'Failed to parse {category} sale page {page}. Reason: {ex}')

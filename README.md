@@ -96,6 +96,7 @@ The initial run can take 12+ hours.
 - **dir:** Output directory
 - **sales:** (List[int]): Only refresh the sales specified in this list (Optional)
 - **max_pages:** (int): The maximum number of pages to download. Default is -1, which means unlimited (Optional)
+- **no_fail:** (bool): Continue downloading sales even if a page fails to load
 
 ### Generate static website
 ```bash
