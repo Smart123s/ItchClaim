@@ -29,12 +29,20 @@ from .ItchGame import ItchGame
 from .ItchSale import ItchSale
 from . import __version__
 
-def get_all_sales(start: int, max_pages: int = -1, no_fail: bool = False) -> List[ItchGame]:
+def get_all_sales(
+        start: int,
+        max_pages: int = -1,
+        no_fail: bool = False,
+        max_not_found_pages: int = 25
+    ) -> List[ItchGame]:
     """Download details about every sale posted on itch.io
 
     Args:
         start (int): the ID of the first sale to download
         max_pages (int): the maximum number of pages to download. Set to -1 to download all pages.
+        no_fail (bool): set to True to continue execution even if a connection error occurs
+        max_not_found_pages (int): the maximum number of consecutive pages that return 404 before
+            stopping the execution
     """
 
     if max_pages == -1:
@@ -42,13 +50,26 @@ def get_all_sales(start: int, max_pages: int = -1, no_fail: bool = False) -> Lis
 
     page = start - 1
     games_num = 0
+    page_not_found_num = 0
     while page < start + max_pages:
         page += 1
         try:
             games_added = get_one_sale(page, force=False)
+            # If games_added is -1 it means that the sale page returned 404
             if games_added == -1:
-                break
+                # Sometimes there are sales even after multiple 404 pages
+                page_not_found_num += 1
+                if page_not_found_num > max_not_found_pages:
+                    print('No more sales available at the moment.')
+                    break
+                else:
+                    print(f'Sale page {page} returned 404 without URL redirection. '
+                        + 'Seems like the end of the sales list. '
+                        + f'({page_not_found_num}/{max_not_found_pages})'
+                    )
+                    continue
             else:
+                page_not_found_num = 0
                 games_num += games_added
         except (requests.exceptions.ConnectionError) as ex:
             print(f'A connection error has occurred while parsing sale page {page}. Reason: {ex}')
@@ -84,7 +105,7 @@ def get_one_sale(page: int, force: bool = True) -> int:
     games_num = 0
     current_sale = ItchSale(page)
     if current_sale.err == 'NO_MORE_SALES_AVAILABLE' and current_sale.id > 90000:
-        print('No more sales available at the moment')
+        # Return -1 if it seems like we have reached the last sale
         return -1
     elif current_sale.err:
         return 0
