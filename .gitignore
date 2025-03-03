@@ -40,6 +40,7 @@ htmlcov
 
 # Virtual environments
 venv
+.venv
 
 # Type checking
 .mypy_cache
