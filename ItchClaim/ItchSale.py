@@ -50,10 +50,10 @@ class ItchSale:
         r.encoding = 'utf-8'
 
         if r.status_code == 404:
-            print(f'Sale page #{self.id}: 404 Not Found')
             if r.url == sale_url:
                 self.err = 'NO_MORE_SALES_AVAILABLE'
             else:
+                print(f'Sale page #{self.id}: 404 Not Found')
                 self.err = '404_NOT_FOUND'
             return
 

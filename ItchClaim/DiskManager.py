@@ -81,7 +81,7 @@ def get_all_sales(
             print(f'Failed to parse sale page {page}. Reason: {ex}')
 
         with open(os.path.join(ItchGame.games_dir, 'resume_index.txt'), 'w', encoding='utf-8') as f:
-            f.write(str(page))
+            f.write(str(page - page_not_found_num))
 
     if page >= start + max_pages:
         print(f'Execution stopped because the maximum number of {max_pages} pages was reached')
