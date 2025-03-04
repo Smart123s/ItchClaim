@@ -123,4 +123,7 @@ The initial plan was to parse https://itch.io/games/on-sale on each run (it was 
 Luckily for us, details about every sale are published at https://itch.io/s/<id\>, where id is a sequentially incremented number. However, downloading data about every single sale published on itch.io generates a lot of load on their servers. To easen the load generated on itch.io by this tool, I've decide to do this scraping only once, on a remote server, and make the data publicly available.
 
 ### Can ItchClaim developers see who has access the sale data?
-No, every file on the website is hosted by GitHub via their Pages service, and no data is made available to the developers.
+No, ItchClaim doesn't log anything.
+When running the claim command, one request is sent to ItchClaim, in order to download a list of the latest active sales. Every request besides that is sent directly to itch.io.
+The website is hosted on https://ininet.hu.
+The site was previously hosted on GitHub Pages, but the project's cache was wiped on 13 Feb, 2025. After that, it had been decided to use a third-party hosting site, because I didn't want to risk my GitHub account getting banned for abuse.
