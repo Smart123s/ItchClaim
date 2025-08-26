@@ -246,6 +246,8 @@ def load_all_games():
         if not file.endswith('.json'):
             continue
         path = os.path.join(ItchGame.games_dir, file)
+        if os.path.getsize(path) == 0:
+            continue
         l.append(ItchGame.load_from_disk(path))
     return l
 
