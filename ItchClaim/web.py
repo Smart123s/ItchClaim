@@ -43,8 +43,12 @@ def generate_web(games: List[ItchGame], web_dir: str):
     template = Template(pkg_resources.read_text(__package__, 'index.template.html'))
     games.sort(key=lambda a: (-1*a.sales[-1].id, a.name))
 
-    # Load resume index
+    # Forcibly set claimable to None if not set yet to prevent cached_property from calling remote API
+    for game in games:
+        if "claimable" not in game.__dict__:
+            game.claimable = None
 
+    # Load resume index
     try:
         with open(os.path.join(web_dir, 'data', 'resume_index.txt'), 'r', encoding='utf-8') as f:
             resume_index = int(f.read())
@@ -87,16 +91,16 @@ def generate_web(games: List[ItchGame], web_dir: str):
 def generate_rows(games: List[ItchGame], type: str) -> List[str]:
     rows: List[str] = []
     for game in games:
-        if game.claimable == False:
+        if game.claimable is False:
             claimable_text = 'Not claimable'
             claimable_icon = '&#x274C;'
-        elif game.claimable == True:
+        elif game.claimable is True:
             claimable_text = 'claimable'
             claimable_icon = '&#x2714;'
         else:
             claimable_text = 'Unknown'
             claimable_icon = '&#x1F551;'
-        
+
         if type == 'active':
             sale_date = game.active_sale.end
         elif type == 'upcoming':
