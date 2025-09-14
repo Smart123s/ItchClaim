@@ -27,6 +27,7 @@ from typing import List
 
 import pycron
 from fire import Fire
+from requests.exceptions import ReadTimeout
 
 from . import DiskManager, __version__
 from .ItchGame import ItchGame
@@ -189,6 +190,22 @@ class ItchClaim:
 
         games = DiskManager.load_all_games()
         generate_web(games, web_dir)
+
+    def recheck_unknown_claimability(self, games_dir: str = 'web/data/'):
+        """Recheck games with unknown claimability"""
+
+        ItchGame.games_dir = games_dir
+        games = DiskManager.load_all_games()
+
+        for game in games:
+            if "claimable" not in game.__dict__:
+                print(f'Rechecking claimability of {game.name} ({game.id})')
+                try:
+                    print(f'Found claimable: {game.claimable} for {game.name} (ID {game.id})')
+                except ReadTimeout as e:
+                    print(f'Timeout while checking claimability of {game.name} (ID {game.id}): {e}')
+                    continue
+                game.save_to_disk()
 
     def login(self,
                 username: str = None,

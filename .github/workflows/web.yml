@@ -58,6 +58,8 @@ jobs:
         run: echo ${{ github.event.inputs.restart_from_sale_id }} > web/data/resume_index.txt
       - name: Refresh sales from itch.io
         run: python itchclaim.py refresh_sale_cache --games_dir web/data/ --sales "[${{ github.event.inputs.sales }}]" --max_pages 5000
+      - name: Recheck games with unknown claimability
+        run: python itchclaim.py recheck_unknown_claimability --games_dir web/data/
       - name: Generate index.html and JSON data
         run: python itchclaim.py generate_web --web_dir web/
       - name: Upload Page

@@ -100,6 +100,16 @@ The initial run can take 12+ hours.
 - **no_fail:** (bool): Continue downloading sales even if a page fails to load
 - **max_not_found_pages:** (int): The maximum number of consecutive pages that return 404 before stopping the execution. Default is 25
 
+### Recheck unknown claimability
+
+Rechecks all games in the specified directory whose claimability status is unknown. This can happen for example when a sale was initially saved as an "upcoming sale", a state in which claimability can not be checked.
+For each such game, it prints the game's name and ID, displays the found claimability status, and saves the updated game data back to disk.
+
+#### Parameters
+- **games_dir:** (str, optional): The directory where game data is stored. Defaults to `'web/data/'`.
+
+**Usage Example:**
+
 ### Generate static website
 ```bash
 itchclaim generate_web --dir web/data/ --web_dir web/
