@@ -198,7 +198,7 @@ class ItchClaim:
         games = DiskManager.load_all_games()
 
         for game in games:
-            if "claimable" not in game.__dict__:
+            if "claimable" not in game.__dict__ and game.active_sale:
                 print(f'Rechecking claimability of {game.name} ({game.id})')
                 try:
                     print(f'Found claimable: {game.claimable} for {game.name} (ID {game.id})')
