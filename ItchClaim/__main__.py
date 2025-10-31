@@ -243,6 +243,10 @@ class ItchClaim:
         Returns:
             ItchUser: a logged in ItchUser instance
         """
+
+        if not isinstance(username, str):
+            username = input('Enter username: ')
+
         self.user = ItchUser(username)
         try:
             self.user.load_session()
