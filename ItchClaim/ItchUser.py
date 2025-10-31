@@ -20,38 +20,37 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from functools import cached_property
 from getpass import getpass
 import platform
 import re
 import tempfile
-import urllib
 import os
 import json
 from typing import List, Optional
-import requests
 import pyotp
 from bs4 import BeautifulSoup
+from .CfWrapper import CfWrapper
 from .ItchGame import ItchGame
-from . import __version__
 
 class ItchUser:
     def __init__(self, username):
-        self.s = requests.Session()
+        self.s = CfWrapper()
         self.username = username
         self.owned_games: List[ItchGame] = []
 
-        self.s.headers.update({'User-Agent': f'ItchClaim {__version__}'})
-
     def login(self, password: str, totp: Optional[str]):
         """Create a new session on itch.io"""
+        # This line was needed to get the csrf_token cookie set
+        # Now, it's done in CfWrapper
+        # The only purpose of this line is that it triggers a Cloudflare check
+        # So it won't ask for a password until the Cloudflare check is done
         self.s.get('https://itch.io/login')
 
         if password is None:
             password = getpass(f'Enter password for user {self.username}: ')
 
         data = {
-            'csrf_token': self.csrf_token,
+            'csrf_token': self.s.csrf_token,
             'tz': -120,
             'username': self.username,
             'password': password,
@@ -78,7 +77,7 @@ class ItchUser:
             totp_secret = totp
             totp = pyotp.TOTP(totp).now()
         data = {
-            'csrf_token': self.csrf_token,
+            'csrf_token': self.s.csrf_token,
             'userid': self.user_id,
             'code': int(totp),
         }
@@ -99,7 +98,7 @@ class ItchUser:
         """Save session to disk"""
         os.makedirs(ItchUser.get_users_dir(), exist_ok=True)
         data = {
-            'csrf_token': self.csrf_token,
+            'csrf_token': self.s.csrf_token,
             'itchio': self.s.cookies['itchio'],
             'owned_games': [game.id for game in self.owned_games],
         }
@@ -123,11 +122,6 @@ class ItchUser:
         sessionfilename = f'session-{safe_username}.json'
         return os.path.join(ItchUser.get_users_dir(), sessionfilename)
 
-    @cached_property
-    def csrf_token(self) -> str:
-        """Extract CSRF token from cookies"""
-        return urllib.parse.unquote(self.s.cookies['itchio_token'])
-
     def owns_game(self, game: ItchGame):
         for oid in [owned_game.id for owned_game in self.owned_games]:
             if game.id == oid:
@@ -136,14 +130,14 @@ class ItchUser:
 
     def owns_game_online(self, game: ItchGame):
         """Check on itch.io if the user own's a game"""
-        r = self.s.get(game.url, json={'csrf_token': self.csrf_token})
+        r = self.s.get(game.url, json={'csrf_token': self.s.csrf_token})
         r.encoding = 'utf-8'
         soup = BeautifulSoup(r.text, 'html.parser')
         owned_box = soup.find('span', class_='ownership_reason')
         return owned_box != None
 
     def claim_game(self, game: ItchGame):
-        r = self.s.post(game.url + '/download_url', json={'csrf_token': self.csrf_token})
+        r = self.s.post(game.url + '/download_url', json={'csrf_token': self.s.csrf_token})
         r.encoding = 'utf-8'
         resp = json.loads(r.text)
         if 'errors' in resp:
@@ -164,7 +158,7 @@ class ItchUser:
             return
         claim_url = claim_box.find('form')['action']
         r = self.s.post(claim_url,
-                        data={'csrf_token': self.csrf_token},
+                        data={'csrf_token': self.s.csrf_token},
                         headers={ 'Content-Type': 'application/x-www-form-urlencoded'}
                         )
         r.encoding = 'utf-8'

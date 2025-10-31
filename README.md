@@ -7,6 +7,8 @@ pip install ItchClaim
 
 ## Usage
 
+> ⚠️ **Warning:** A working installation of Chrome or Chromium is required, as this script utilizes FlareSolverr to bypass itch.io's Cloudflare protection.
+
 ```bash
 itchclaim --login <username> claim
 ```
@@ -14,10 +16,11 @@ This command logs in the user (asks for password if it's ran for the first time)
 
 ## Docker
 
+> 🛈 **Note:** The Docker image has a copy of Chromium built-in for FlareSolverr.
+
 ```bash
 docker run --rm -it -v "<path-to-user-session-directory>:/data" ghcr.io/smart123s/itchclaim --login <username> claim
 ```
-
 ## Advanced Usage
 
 ### Logging in (via flags)
@@ -128,6 +131,8 @@ This tools is not affiliated with itch.io. Using it may not be allowed, and may 
 ### Can itch.io detect that I'm using this tool?
 Yes. We explicitly let itch.io know that the requests were sent by this tool, using the `user-agent` header. Itch.io doesn't block using non-browser user agents (like some big corporations do), so I think that they deserve to know how their services are being used. If they want to block ItchClaim, blocking this user-agent makes it simple for them. This way, they won't have to implement additional anti-bot technologies, which would make both our and itch.io's life worse.
 
+Since October 2025, itch.io started using CloudFlare. After the first captcha is presented, ItchClaim will switch to a generic Chromium User-Agent, and will advertise its real identity in a separate `X-Real-User-Agent` header.
+
 ### Why sales are not downloaded directly from itch.io?
 The initial plan was to parse https://itch.io/games/on-sale on each run (it was even implemented in [here](https://github.com/Smart123s/ItchClaim/blob/00ddfa3dfe57c747f09486fd7791f0e1d57347f3/ItchClaim/DiskManager.py#L31-L49)), however, it turns out that only a handful of sales are listed there.
 Luckily for us, details about every sale are published at https://itch.io/s/<id\>, where id is a sequentially incremented number. However, downloading data about every single sale published on itch.io generates a lot of load on their servers. To ease the load generated on itch.io by this tool, I've decide to do this scraping only once, on a remote server, and make the data publicly available.
@@ -137,3 +142,7 @@ No, ItchClaim doesn't log anything.
 When running the claim command, one request is sent to ItchClaim, in order to download a list of the latest active sales. Every request besides that is sent directly to itch.io.
 The website is hosted on https://ininet.hu.
 The site was previously hosted on GitHub Pages, but the project's cache was wiped on 13 Feb, 2025. After that, it had been decided to use a third-party hosting site, because I didn't want to risk my GitHub account getting banned for abuse.
+
+### Why is a fork of FlareSolverr used?
+FlareSolverr doesn't support importing/installing it as a python package. The current version requires users to download and start FlareSolverr separately of any application. It starts a web server, which can be used by other programs to communicate with. Whilst this would be *fine* for desktop users, having to manage two processes in Docker (one for ItchClaim and one for FlareSolverr's web server) would be unintuitive. Furthermore, importing FlareSolverr as a package keeps the code simple, since existing type definitions can be used.
+Multiple PRs have been opened in FlareSolverr's GitHub repo to transform FlareSolverr into an installable package, but none of them received any updates for years. Therefore, I decided to update these old PRs and open a new one ([FlareSolverr#1603](https://github.com/FlareSolverr/FlareSolverr/pull/1603)). Until it gets merged (if it will ever get merged), my fork will be built from source by pip when installing or updating ItchClaim.

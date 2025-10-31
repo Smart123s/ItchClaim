@@ -20,8 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import logging
 import os
 import signal
+import sys
 from time import sleep
 from typing import List
 
@@ -41,8 +43,27 @@ class ItchClaim:
                 version: bool = False,
                 login: str = None,
                 password: str = None,
-                totp: str = None):
-        """Automatically claim free games from itch.io"""
+                totp: str = None,
+                flaresolverr_log_level: str = 'ERROR'):
+        """Automatically claim free games from itch.io
+
+        Args:
+            username (str): The username or email address of the user
+            password (str): The password of the user
+            totp (str): The 2FA code of the user
+                Either the 6 digit code, or the secret used to generate the code
+            flaresolverr_log_level (str): The logging level of FlareSolverr
+                Default is 'ERROR'. Other options are: 'DEBUG', 'INFO', 'WARNING'
+        """
+
+        # Set up FlareSolverr logging
+        logging.getLogger("flaresolverr").setLevel(flaresolverr_log_level)
+        flaresolverr_logger = logging.getLogger("flaresolverr")
+        flaresolverr_logger.setLevel(flaresolverr_log_level)
+        ch = logging.StreamHandler(sys.stdout)
+        ch.setLevel(flaresolverr_log_level)
+        flaresolverr_logger.addHandler(ch)
+
         if version:
             self.version()
         # Try loading username from environment variables if not provided as command line argument

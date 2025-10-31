@@ -23,11 +23,14 @@
 from typing import List
 import os
 import json
-import requests
 from bs4 import BeautifulSoup
+from requests.exceptions import ConnectionError
 from .ItchGame import ItchGame
 from .ItchSale import ItchSale
+from .CfWrapper import CfWrapper
 from . import __version__
+
+requests = CfWrapper()
 
 def get_all_sales(
         start: int,
@@ -71,7 +74,7 @@ def get_all_sales(
             else:
                 page_not_found_num = 0
                 games_num += games_added
-        except (requests.exceptions.ConnectionError) as ex:
+        except (ConnectionError) as ex:
             print(f'A connection error has occurred while parsing sale page {page}. Reason: {ex}')
             print('Aborting current sale refresh.')
             if not no_fail:
@@ -174,7 +177,7 @@ def get_all_sale_pages(category: str = 'games', no_fail: bool =False) -> List[It
                 break
             else:
                 games_num += games_added
-        except requests.exceptions.ConnectionError as ex:
+        except ConnectionError as ex:
             print(f'A connection error has occurred while parsing {category} sale page {page}. Reason: {ex}')
             print('Aborting current sale refresh.')
             if not no_fail:

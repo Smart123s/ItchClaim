@@ -23,11 +23,12 @@
 from datetime import datetime
 from typing import List, Optional
 from functools import cached_property
-import json, requests, re, urllib, os
+import json, re, urllib, os
 from bs4.element import Tag
 from bs4 import BeautifulSoup
 from .ItchSale import ItchSale
 from . import __version__
+from .CfWrapper import CfWrapper
 
 class ItchGame:
     games_dir: str = 'web/data/'
@@ -39,6 +40,7 @@ class ItchGame:
         self.price: float = None
         self.sales: List[ItchSale] = []
         self.cover_image: str = None
+        self.s = CfWrapper()
 
     @classmethod
     def from_div(cls, div: Tag, price_needed: bool = False):
@@ -120,7 +122,7 @@ class ItchGame:
         if url[-1] == '/':
             url = url[:-1]
 
-        r = requests.get(url + '/data.json',
+        r = self.s.get(url + '/data.json',
                         headers={'User-Agent': f'ItchClaim {__version__}'},
                         timeout=8,)
         r.encoding = 'utf-8'
@@ -172,7 +174,7 @@ class ItchGame:
     def claimable(self) -> Optional[bool]:
         if not self.active_sale:
             return None
-        r = requests.get(self.url, timeout=8)
+        r = self.s.get(self.url, timeout=8)
         r.encoding = 'utf-8'
         soup = BeautifulSoup(r.text, 'html.parser')
         buy_row = soup.find('div', class_='buy_row')
@@ -206,18 +208,10 @@ class ItchGame:
     def is_first_sale(self) -> bool:
         return len(self.sales) == 1
 
-    def downloadable_files(self, s: requests.Session = None) -> List:
-        """Get details about a game, including it's CDN URls
-       
-        Args:
-            s (Session): The session used to get the download links"""
-        if s is None:
-            s = requests.session()
-            s.headers.update({'User-Agent': f'ItchClaim {__version__}'})
-            s.get('https://itch.io/')
-        csrf_token = urllib.parse.unquote(s.cookies['itchio_token'])
+    def downloadable_files(self) -> List:
+        """Get details about a game, including it's CDN URls"""
 
-        r = s.post(self.url + '/download_url', json={'csrf_token': csrf_token})
+        r = self.s.post(self.url + '/download_url', json={'csrf_token': self.s.csrf_token})
         r.encoding = 'utf-8'
         resp = json.loads(r.text)
         if 'errors' in resp:
@@ -225,7 +219,7 @@ class ItchGame:
             print(f"\t{resp['errors'][0]}")
             return
         download_page = json.loads(r.text)['url']
-        r = s.get(download_page)
+        r = self.s.get(download_page)
         r.encoding = 'utf-8'
         soup = BeautifulSoup(r.text, 'html.parser')
         uploads_div = soup.find_all('div', class_='upload')
@@ -234,12 +228,11 @@ class ItchGame:
             uploads.append(self.parse_download_div(upload_div, s))
         return uploads
 
-    def parse_download_div(self, div: Tag, s: requests.Session):
+    def parse_download_div(self, div: Tag):
         """Extract details about a game. 
         
         Args:
             div (Tag): A div containing download information
-            s (Session): The session used to get the download links
 
         Returns:
             dict: Details about the game's files"""
@@ -261,9 +254,8 @@ class ItchGame:
                     platforms.append(platform)
 
         # Get download url
-        csrf_token = urllib.parse.unquote(s.cookies['itchio_token'])
-        r = s.post(self.url + f'/file/{id}',
-                    json={'csrf_token': csrf_token},
+        r = self.s.post(self.url + f'/file/{id}',
+                    json={'csrf_token': self.s.csrf_token},
                     params={'source': 'game_download'})
         r.encoding = 'utf-8'
         download_url= json.loads(r.text)['url']
@@ -305,7 +297,7 @@ class ItchGame:
 
         Returns:
             bool: True if a new URL is found"""
-        resp_redirect = requests.head(self.url)
+        resp_redirect = self.s.head(self.url)
         if not resp_redirect.is_redirect:
             return False
         self.url = resp_redirect.next.url

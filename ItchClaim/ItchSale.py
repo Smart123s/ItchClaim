@@ -24,9 +24,9 @@ import json
 import re
 from typing import List
 from datetime import datetime
-import requests
 from bs4 import BeautifulSoup
 from . import __version__
+from .CfWrapper import CfWrapper
 
 
 class ItchSale:
@@ -42,7 +42,8 @@ class ItchSale:
 
     def get_data_online(self):
         sale_url = f"https://itch.io/s/{self.id}"
-        r = requests.get(sale_url,
+        s = CfWrapper()
+        r = s.get(sale_url,
                 headers={
                     'User-Agent': f'ItchClaim {__version__}',
                     'Accept-Language': 'en-GB,en;q=0.9',
