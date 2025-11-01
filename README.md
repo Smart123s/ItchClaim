@@ -9,6 +9,7 @@ pip install git+https://github.com/Smart123s/ItchClaim.git
 ## Usage
 
 > ⚠️ **Warning:** A working installation of Chrome or Chromium is required, as this script utilizes FlareSolverr to bypass itch.io's Cloudflare protection.
+
 > 🛈 **Note:** As of 1 November 2025, it seems like only the login page is protected by CloudFlare. If you generate a session on a desktop system, you should be able to continue using ItchClaim without Chromium. See the FAQ for details [here](#where-does-itchclaim-store-my-login-details).
 
 ```bash
