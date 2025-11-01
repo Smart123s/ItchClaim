@@ -126,7 +126,7 @@ class ItchGame:
         s = CfWrapper()
         r = s.get(url + '/data.json',
                         headers={'User-Agent': f'ItchClaim {__version__}'},
-                        timeout=8,)
+                        timeout=32,)
         r.encoding = 'utf-8'
         resp = json.loads(r.text)
 
@@ -177,7 +177,7 @@ class ItchGame:
     def claimable(self) -> Optional[bool]:
         if not self.active_sale:
             return None
-        r = self.s.get(self.url, timeout=8)
+        r = self.s.get(self.url, timeout=32)
         r.encoding = 'utf-8'
         soup = BeautifulSoup(r.text, 'html.parser')
         buy_row = soup.find('div', class_='buy_row')

@@ -47,7 +47,7 @@ class ItchSale:
                 headers={
                     'User-Agent': f'ItchClaim {__version__}',
                     'Accept-Language': 'en-GB,en;q=0.9',
-                    }, timeout=8)
+                    }, timeout=32)
         r.encoding = 'utf-8'
 
         if r.status_code == 404:
