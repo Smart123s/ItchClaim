@@ -8,6 +8,7 @@ pip install ItchClaim
 ## Usage
 
 > ⚠️ **Warning:** A working installation of Chrome or Chromium is required, as this script utilizes FlareSolverr to bypass itch.io's Cloudflare protection.
+> 🛈 **Note:** As of 1 November 2025, it seems like only the login page is protected by CloudFlare. If you generate a session on a desktop system, you should be able to continue using ItchClaim without Chromium. See the FAQ for details [here](#where-does-itchclaim-store-my-login-details).
 
 ```bash
 itchclaim --login <username> claim
@@ -127,6 +128,13 @@ This command was created for use on the CI, and is not recommended for general u
 
 ### Is this legal?
 This tools is not affiliated with itch.io. Using it may not be allowed, and may result in your account getting suspended or banned. Use at your own risk.
+
+### Where does ItchClaim store my login details?
+After successful login, ItchClaim saves a session ID (and a corresponding csrf-token) to the disk. This is the smae data browser use for the "keep me logged in" functionality. ItchClaim never saves your password or your 2FA codes.
+
+- **On Windows:** `%LocalAppData%\ItchClaim\users`
+  *If you installed Python from the Microsoft Store, the path may be something like `%LocalAppData%\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache`. Explanation can be found [here](https://github.com/python-poetry/install.python-poetry.org/issues/135#issuecomment-1815670512).*
+- **On Linux:** `~/.config/itchclaim/users`
 
 ### Can itch.io detect that I'm using this tool?
 Yes. We explicitly let itch.io know that the requests were sent by this tool, using the `user-agent` header. Itch.io doesn't block using non-browser user agents (like some big corporations do), so I think that they deserve to know how their services are being used. If they want to block ItchClaim, blocking this user-agent makes it simple for them. This way, they won't have to implement additional anti-bot technologies, which would make both our and itch.io's life worse.
