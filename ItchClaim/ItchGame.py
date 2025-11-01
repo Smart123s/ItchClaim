@@ -107,6 +107,7 @@ class ItchGame:
         if data['claimable'] is not None and not refresh_claimable:
             self.claimable = data['claimable']
         self.cover_image = data['cover_image']
+        self.s = CfWrapper()
         return self
 
     @classmethod
@@ -122,7 +123,8 @@ class ItchGame:
         if url[-1] == '/':
             url = url[:-1]
 
-        r = self.s.get(url + '/data.json',
+        s = CfWrapper()
+        r = s.get(url + '/data.json',
                         headers={'User-Agent': f'ItchClaim {__version__}'},
                         timeout=8,)
         r.encoding = 'utf-8'
@@ -142,6 +144,7 @@ class ItchGame:
         game = ItchGame(game_id)
 
         game.url = url
+        game.s = s
 
         # check for redirects in the request
         # sometimes it redirects /data.json requests, sometimes it doesn't
