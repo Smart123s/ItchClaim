@@ -1,8 +1,9 @@
 Automatically claim free games from itch.io
 
 ## Install
+> ⚠️ **Warning:** The version on PyPi is currently outdated. See [Issue#25](https://github.com/Smart123s/ItchClaim/issues/25) for details.
 ```bash
-pip install ItchClaim
+pip install git+https://github.com/Smart123s/ItchClaim.git
 ```
 
 ## Usage
