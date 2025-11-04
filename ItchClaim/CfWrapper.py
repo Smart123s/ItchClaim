@@ -49,6 +49,10 @@ class CfWrapper:
         return cls._instance
 
     def __init__(self):
+        # Check if the instance has already been initialized. If so, do nothing.
+        if hasattr(self, 'session'):
+            return
+
         self.session = requests.Session()
         # User-Agent header will be changed to a generic Chromium string when the first
         # Cloudflare challenge is solved
