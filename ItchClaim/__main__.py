@@ -251,6 +251,10 @@ class ItchClaim:
         try:
             self.user.load_session()
             print(f'Session {username} loaded successfully')
+
+            if not self.user.validate_session():
+                print('Session is invalid or expired. Logging in again.')
+                raise FileNotFoundError()
         except FileNotFoundError:
             # Try loading password from environment variables if not provided as command line argument
             if password is None:

@@ -115,6 +115,16 @@ class ItchUser:
             self.owned_games  = [ItchGame(id) for id in data['owned_games']]
         except KeyError:
             pass
+    
+    def validate_session(self) -> bool:
+        """Validate wther the current session is valid"""
+        # Itch.io has placed most of the user content behind Cloudflare
+        # So whe validate the user session by checking if a login button is present on the home page
+        r = self.s.get('https://itch.io/')
+        r.encoding = 'utf-8'
+        soup = BeautifulSoup(r.text, 'html.parser')
+        login_box = (soup.find('a', href='/login'))
+        return login_box is None
 
     def get_default_session_filename(self) -> str:
         """Get the default session path"""
