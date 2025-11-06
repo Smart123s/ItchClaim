@@ -204,7 +204,6 @@ def get_online_sale_page(page: int, category: str = 'games') -> int:
     """
     print(f'Processing {category} sale page #{page}')
     r = requests.get(f"https://itch.io/{category}/newest/on-sale?page={page}&format=json",
-                    headers={'User-Agent': f'ItchClaim {__version__}'},
                     timeout=32,)
     if r.status_code == 404:
         print('Page returned 404.')
