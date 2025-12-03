@@ -25,7 +25,7 @@
 from urllib.parse import unquote
 import requests
 
-import flaresolverr
+from .flaresolverr import flaresolverr
 
 from . import __version__
 

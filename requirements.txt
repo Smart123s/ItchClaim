@@ -3,4 +3,3 @@ fire>=0.6.0
 pyotp>=2.9.0
 beautifulsoup4>=4.12.3
 pycron>=3.0.0
-flaresolverr @ git+https://github.com/Smart123s/FlareSolverr.git@feat/pip-package

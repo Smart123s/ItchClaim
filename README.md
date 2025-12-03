@@ -1,9 +1,8 @@
 Automatically claim free games from itch.io
 
 ## Install
-> ⚠️ **Warning:** The version on PyPi is currently outdated. See [Issue#25](https://github.com/Smart123s/ItchClaim/issues/25) for details.
 ```bash
-pip install git+https://github.com/Smart123s/ItchClaim.git
+pip install itchclaim
 ```
 
 ## Usage
@@ -155,4 +154,4 @@ The site was previously hosted on GitHub Pages, but the project's cache was wipe
 
 ### Why is a fork of FlareSolverr used?
 FlareSolverr doesn't support importing/installing it as a python package. The current version requires users to download and start FlareSolverr separately of any application. It starts a web server, which can be used by other programs to communicate with. Whilst this would be *fine* for desktop users, having to manage two processes in Docker (one for ItchClaim and one for FlareSolverr's web server) would be unintuitive. Furthermore, importing FlareSolverr as a package keeps the code simple, since existing type definitions can be used.
-Multiple PRs have been opened in FlareSolverr's GitHub repo to transform FlareSolverr into an installable package, but none of them received any updates for years. Therefore, I decided to update these old PRs and open a new one ([FlareSolverr#1603](https://github.com/FlareSolverr/FlareSolverr/pull/1603)). Until it gets merged (if it will ever get merged), my fork will be built from source by pip when installing or updating ItchClaim.
+Multiple PRs have been opened in FlareSolverr's GitHub repo to transform FlareSolverr into an installable package, but none of them received any updates for years. Therefore, I decided to update these old PRs and open a new one ([FlareSolverr#1603](https://github.com/FlareSolverr/FlareSolverr/pull/1603)). Until it gets merged (if it will ever get merged), my fork of FlareSolverrs will be bundled into ItchClaim as a git submodule.
