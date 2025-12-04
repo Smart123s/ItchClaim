@@ -1,6 +1,7 @@
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
+
 [project]
 name = "ItchClaim"
 authors = [
@@ -33,17 +34,20 @@ classifiers = [
 [project.scripts]
 itchclaim = "ItchClaim.__main__:main"
 
-[tool.setuptools]
-packages = ["ItchClaim"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["ItchClaim*"]
 
  # FIXME: this is a workaround; see:
  #   - https://github.com/rst2pdf/rst2pdf/pull/1257/commits/e15dee4fba5dcc78c6991a8566c0b7ee603092bf
  #   - https://github.com/pypa/setuptools/issues/4759
- license-files = []
+[tool.setuptools]
+license-files = []
 
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
 version = {attr = "ItchClaim.__init__.__version__"}
 
 [tool.setuptools.package-data]
-ItchClaim = ["*.html"]
+# Include all html files, and recursively include everything in the flaresolverr folder
+ItchClaim = ["*.html", "flaresolverr/**/*"]
