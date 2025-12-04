@@ -45,7 +45,7 @@ include = ["ItchClaim*"]
 license-files = []
 
 [tool.setuptools.dynamic]
-dependencies = {file = ["requirements.txt"]}
+dependencies = {file = ["requirements.txt", "ItchClaim/flaresolverr/requirements.txt"]}
 version = {attr = "ItchClaim.__init__.__version__"}
 
 [tool.setuptools.package-data]
