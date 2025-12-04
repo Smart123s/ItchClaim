@@ -4,23 +4,18 @@ FROM ghcr.io/flaresolverr/flaresolverr:v3.4.3
 
 USER root
 
-# Delete flaresolverr app directory
-# It will be replaced with ItchClaim app
-# FlareSolverr will be installed via pip
+# Delete flaresolverr app directory from base image
+# FlareSolverr is included in ItchClaim as a git submodule
 RUN rm -rf /app
 
 ENV ITCHCLAIM_DOCKER=TRUE
 
 WORKDIR /app
 
-# Temporarily a fork of FlareSolverr is used, built from git source
-RUN apt update && \
-    apt install -y git && \
-    apt clean && \
-    rm -rf /var/lib/apt/lists/*
-
 COPY requirements.txt .
 
+# FlareSolverr dependencies are included in the base image
+# note: FROM ghcr.io/flaresolverr/flaresolverr:v3.4.3
 RUN pip install -r requirements.txt
 
 ENV PYTHONUNBUFFERED=1
