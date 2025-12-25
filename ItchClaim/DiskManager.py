@@ -25,6 +25,7 @@ import os
 import json
 from bs4 import BeautifulSoup
 from requests.exceptions import ConnectionError
+from .flaresolverr.flaresolverr import FlaresolverrException
 from .ItchGame import ItchGame
 from .ItchSale import ItchSale
 from .CfWrapper import CfWrapper
@@ -76,8 +77,13 @@ def get_all_sales(
                 games_num += games_added
         except (ConnectionError) as ex:
             print(f'A connection error has occurred while parsing sale page {page}. Reason: {ex}')
-            print('Aborting current sale refresh.')
             if not no_fail:
+                print('Aborting current sale refresh.')
+                exit(1)
+        except (FlaresolverrException) as ex:
+            print(f'A FlareSolverr error has occurred while parsing sale page {page}. Reason: {ex}')
+            if not no_fail:
+                print('Aborting current sale refresh.')
                 exit(1)
         #pylint: disable=broad-exception-caught
         except Exception as ex:
@@ -179,8 +185,13 @@ def get_all_sale_pages(category: str = 'games', no_fail: bool =False) -> List[It
                 games_num += games_added
         except ConnectionError as ex:
             print(f'A connection error has occurred while parsing {category} sale page {page}. Reason: {ex}')
-            print('Aborting current sale refresh.')
             if not no_fail:
+                print('Aborting current sale refresh.')
+                exit(1)
+        except FlaresolverrException as ex:
+            print(f'A FlareSolverr error has occurred while parsing {category} sale page {page}. Reason: {ex}')
+            if not no_fail:
+                print('Aborting current sale refresh.')
                 exit(1)
         #pylint: disable=broad-exception-caught
         except Exception as ex:
