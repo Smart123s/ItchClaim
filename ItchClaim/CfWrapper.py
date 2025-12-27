@@ -23,6 +23,8 @@
 """FlareSolverr wrapper for requests."""
 
 from urllib.parse import unquote
+from urllib3.util.retry import Retry
+from requests.adapters import HTTPAdapter
 import requests
 
 from .flaresolverr import flaresolverr
@@ -54,6 +56,16 @@ class CfWrapper:
             return
 
         self.session = requests.Session()
+
+        # Retry failed requests to handle transient network issues
+        retry_strategy = Retry(
+            total=5,
+            backoff_factor=2,
+        )
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        self.session.mount("https://", adapter)
+        self.session.mount("http://", adapter)
+
         # User-Agent header will be changed to a generic Chromium string when the first
         # Cloudflare challenge is solved
         self.session.headers.update({"User-Agent": f"ItchClaim {__version__}"})
