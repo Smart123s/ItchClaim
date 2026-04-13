@@ -120,7 +120,7 @@ class CfWrapper:
             self.flaresolverr_initialized = True
 
         cf_challange_data = flaresolverr.V1RequestBase(
-            {"url": CF_ALWAYS_PROTECTED_URL, "maxTimeout": 60000}
+            {"url": CF_ALWAYS_PROTECTED_URL, "maxTimeout": 120000}
         )
         cf_challange = flaresolverr.resolve_challenge(cf_challange_data, "GET")
 
