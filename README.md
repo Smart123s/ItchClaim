@@ -46,7 +46,6 @@ If no credentials are provided via command line arguments, the script checks the
  - `ITCH_PASSWORD` (equivalent of `--password <password>` flag)
  - `ITCH_TOTP` (equivalent of `--totp <2FA code or secret>` flag)
 
-
 ### Scheduling using docker-compose.yml
 Create an always running docker container, that claims new sales on a schedule.
 After you see `Logged in as <username>` in the logs, the `ITCH_PASSWORD` and `ITCH_TOTP` environment variables can be removed, as a session gets saved to the volume (`/data`).
@@ -65,6 +64,11 @@ services:
       ITCH_TOTP: "<TOTP/2FA>"
     restart: unless-stopped
 ```
+
+### FlareSolverr Options
+- `--flaresolverr-log-level <level>`: Set the logging level of FlareSolverr. Default is `ERROR`. Other options are: `DEBUG`, `INFO`, `WARNING`.
+- `--flaresolverr-max-timeout <seconds>`: Set the maximum timeout for FlareSolverr to solve the challenge. Default is `120`.
+
 
 ### Refresh Library
 ```bash

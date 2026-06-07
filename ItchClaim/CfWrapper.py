@@ -56,6 +56,7 @@ class CfWrapper:
             return
 
         self.session = requests.Session()
+        self.max_timeout = 120
 
         # Retry failed requests to handle transient network issues
         retry_strategy = Retry(
@@ -120,7 +121,7 @@ class CfWrapper:
             self.flaresolverr_initialized = True
 
         cf_challange_data = flaresolverr.V1RequestBase(
-            {"url": CF_ALWAYS_PROTECTED_URL, "maxTimeout": 120000}
+            {"url": CF_ALWAYS_PROTECTED_URL, "maxTimeout": self.max_timeout * 1000}
         )
         cf_challange = flaresolverr.resolve_challenge(cf_challange_data, "GET")
 

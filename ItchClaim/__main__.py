@@ -35,6 +35,7 @@ from . import DiskManager, __version__
 from .ItchGame import ItchGame
 from .ItchUser import ItchUser
 from .web import generate_web
+from .CfWrapper import CfWrapper
 
 
 # pylint: disable=missing-class-docstring
@@ -44,7 +45,8 @@ class ItchClaim:
                 login: str = None,
                 password: str = None,
                 totp: str = None,
-                flaresolverr_log_level: str = 'ERROR'):
+                flaresolverr_log_level: str = 'ERROR',
+                flaresolverr_max_timeout: int = 120):
         """Automatically claim free games from itch.io
 
         Args:
@@ -54,6 +56,8 @@ class ItchClaim:
                 Either the 6 digit code, or the secret used to generate the code
             flaresolverr_log_level (str): The logging level of FlareSolverr
                 Default is 'ERROR'. Other options are: 'DEBUG', 'INFO', 'WARNING'
+            flaresolverr_max_timeout (int): The maximum timeout for FlareSolverr in seconds
+                Default is 120
         """
 
         # Set up FlareSolverr logging
@@ -63,6 +67,9 @@ class ItchClaim:
         ch = logging.StreamHandler(sys.stdout)
         ch.setLevel(flaresolverr_log_level)
         flaresolverr_logger.addHandler(ch)
+        
+        # CfWrapper is a singleton, so this sets the max timeout for all instances
+        CfWrapper().max_timeout = flaresolverr_max_timeout
 
         if version:
             self.version()
