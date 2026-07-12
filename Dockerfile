@@ -1,6 +1,6 @@
 # Use FlareSolverr base image
 # It's a python based image with Chromium and all dependencies preinstalled
-FROM ghcr.io/flaresolverr/flaresolverr:v3.4.6
+FROM ghcr.io/flaresolverr/flaresolverr:v3.5.0
 
 USER root
 
@@ -19,7 +19,7 @@ WORKDIR /app
 COPY requirements.txt .
 
 # FlareSolverr dependencies are included in the base image
-# note: FROM ghcr.io/flaresolverr/flaresolverr:v3.4.3
+# note: FROM ghcr.io/flaresolverr/flaresolverr
 RUN pip install -r requirements.txt
 
 ENV PYTHONUNBUFFERED=1
