@@ -110,7 +110,7 @@ class CfWrapper:
         print(
             "Cloudflare protection detected. "
             + "Resolving challenge using FlareSolverr. "
-            + "This may take up to a minute."
+            + f"This may take up to {self.max_timeout} seconds."
         )
         print(
             "If you encounter issues with FlareSolverr, "
