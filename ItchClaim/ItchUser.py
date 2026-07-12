@@ -73,6 +73,7 @@ class ItchUser:
         self.save_session()
 
     def send_top(self, totp: str, url: str) -> None:
+        totp_secret = None
         if len(totp) != 6:
             totp_secret = totp
             totp = pyotp.TOTP(totp).now()
@@ -87,10 +88,11 @@ class ItchUser:
 
         errors_div = soup.find('div', class_='form_errors')
         if errors_div:
-            totp_new = pyotp.TOTP(totp_secret).now()
-            if totp_secret and totp_new != totp:
-                print(f'TOTP code changed (probably the 30 seconds have elapsed while sending it). Attempting with new code.')
-                return self.send_top(totp_new, r.url)
+            if totp_secret:
+                totp_new = pyotp.TOTP(totp_secret).now()
+                if totp_new != totp:
+                    print(f'TOTP code changed (probably the 30 seconds have elapsed while sending it). Attempting with new code.')
+                    return self.send_top(totp_new, r.url)
             print(f'Error while logging in: ' + errors_div.find('li').text)
             exit(1)
 
