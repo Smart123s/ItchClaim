@@ -4,9 +4,13 @@ FROM ghcr.io/flaresolverr/flaresolverr:v3.4.6
 
 USER root
 
-# Delete flaresolverr app directory from base image
-# FlareSolverr is included in ItchClaim as a git submodule
-RUN rm -rf /app
+# Delete flaresolverr app directory from base image.
+# FlareSolverr is included in ItchClaim as a git submodule.
+# Preserve /app/chromedriver from the base image
+RUN cp -a /app/chromedriver /tmp/chromedriver \
+    && rm -rf /app \
+    && mkdir -p /app \
+    && mv /tmp/chromedriver /app/chromedriver
 
 ENV ITCHCLAIM_DOCKER=TRUE
 
