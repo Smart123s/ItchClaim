@@ -1,6 +1,6 @@
 # Use FlareSolverr base image
 # It's a python based image with Chromium and all dependencies preinstalled
-FROM ghcr.io/flaresolverr/flaresolverr:v3.5.0
+FROM ghcr.io/flaresolverr/flaresolverr:v3.5.2
 
 USER root
 
