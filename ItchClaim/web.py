@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import os
 from string import Template
@@ -30,6 +30,22 @@ import importlib.resources as pkg_resources
 from .ItchGame import ItchGame
 
 DATE_FORMAT = '<span>%Y-%m-%d</span> <span>%H:%M</span>'
+
+def format_timestamp(ts: int) -> str:
+    """Format a UNIX timestamp into a date string for the web page.
+
+    Handles platform limitations and extreme timestamps (e.g. negative or
+    far-future dates found on itch.io) that would otherwise raise OSError
+    or OverflowError in standard C runtime fromtimestamp.
+    """
+    try:
+        dt = datetime.fromtimestamp(ts)
+    except (OSError, OverflowError, ValueError):
+        try:
+            dt = datetime(1970, 1, 1) + timedelta(seconds=ts)
+        except (OverflowError, ValueError):
+            dt = datetime.max if ts > 0 else datetime.min
+    return dt.strftime(DATE_FORMAT)
 ROW_TEMPLATE = Template("""<tr>
         <td>$name</td>
         <td style="text-align:center">$sale_date</td>
@@ -102,7 +118,7 @@ def generate_rows(games: List[ItchGame], type: str) -> List[str]:
 
         rows.append(ROW_TEMPLATE.substitute(
             name = game.name,
-            sale_date = datetime.fromtimestamp(sale_date).strftime(DATE_FORMAT),
+            sale_date = format_timestamp(sale_date),
             first_sale = '&#x1F947;' if game.is_first_sale else '',
             claimable_text = claimable_text,
             claimable_icon = claimable_icon,
