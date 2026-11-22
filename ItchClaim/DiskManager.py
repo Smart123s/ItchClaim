@@ -149,19 +149,17 @@ def get_one_sale(page: int, force: bool = True) -> int:
                 print(f'Sale {page} has been already saved for game {game.name} (wrong resume index?)')
                 continue
 
-        if not force:
-            game.sales.append(current_sale)
-        else:
-            sale_already_exists = False
-            for i, sale in enumerate(game.sales):
-                if sale.id == page:
-                    sale_already_exists = True
-                    game.sales[i] = current_sale
+        sale_already_exists = False
+        for i, sale in enumerate(game.sales):
+            if sale.id == page:
+                sale_already_exists = True
+                game.sales[i] = current_sale
+                if force:
                     print(f'Sale page {page}: Updated values for game {game.name} ({game.id})')
-                    break
-            if not sale_already_exists:
-                game.sales.append(current_sale)
-                game.sales.sort(key=lambda a: a.id)
+                break
+        if not sale_already_exists:
+            game.sales.append(current_sale)
+            game.sales.sort(key=lambda a: a.id)
 
         games_num += 1
         game.save_to_database()

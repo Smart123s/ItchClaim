@@ -94,9 +94,14 @@ def migrate(legacy_dir: str, database_file: str):
                 game.claimable = claimable
                 game.cover_image = cover_image
 
+            seen_sale_ids = set()
             game_sales = []
             for s in data.get("sales", []):
                 sale_id = s["id"]
+                if sale_id in seen_sale_ids:
+                    continue
+                seen_sale_ids.add(sale_id)
+
                 start_date = s["start"]
                 end_date = s["end"]
 
