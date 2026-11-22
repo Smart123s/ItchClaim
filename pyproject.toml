@@ -34,6 +34,20 @@ classifiers = [
 [project.scripts]
 itchclaim = "ItchClaim.__main__:main"
 
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "online: tests that connect to external itch.io servers",
+]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["ItchClaim*"]
