@@ -88,7 +88,7 @@ class ItchClaim:
 
     def refresh_sale_cache(
             self,
-            games_dir: str = 'web/data/',
+            database_file: str = 'web/data.db',
             sales: List[int] = None,
             max_pages: int = -1,
             no_fail: bool = False,
@@ -98,7 +98,7 @@ class ItchClaim:
         Opens itch.io and downloads sales posted after the last saved one.
 
         Args:
-            games_dir (str): Output directory
+            database_file (str): SQLite database file path
             sales: (List[int]): Only refresh the sales specified in this list
             max_pages (int): The maximum number of pages to download.
                 Default is -1, which means unlimited
@@ -106,8 +106,7 @@ class ItchClaim:
             max_not_found_pages (int): the maximum number of consecutive pages that return
                 404 before stopping the execution. Default is 25"""
         resume = 1
-        ItchGame.games_dir = games_dir
-        os.makedirs(games_dir, exist_ok=True)
+        ItchGame.database_file = database_file
 
         if sales:
             print('--sales flag found - refreshing only select sale pages')
@@ -116,7 +115,7 @@ class ItchClaim:
             return
 
         try:
-            with open(os.path.join(games_dir, 'resume_index.txt'), 'r', encoding='utf-8') as f:
+            with open('web/resume_index.txt', 'r', encoding='utf-8') as f:
                 resume = int(f.read())
                 print(f'Resuming sale downloads from {resume}')
         except FileNotFoundError:
@@ -126,7 +125,7 @@ class ItchClaim:
             resume,
             max_pages=max_pages,
             no_fail=no_fail,
-            max_not_found_pages=max_not_found_pages
+            max_not_found_pages=max_not_found_pages,
         )
 
         print('Updating games from sale lists, to catch updates of already known sales.')
@@ -206,34 +205,33 @@ class ItchClaim:
         session = self.user.s if self.user is not None else None
         print(game.downloadable_files(session))
 
-    def generate_web(self, web_dir: str = 'web'):
+    def generate_web(self, web_dir: str = 'web', database_file: str = 'web/data.db'):
         """Generates files that can be served as a static website
         
         Args:
-            web_dir (str): Output directory"""
-
-        ItchGame.games_dir = os.path.join(web_dir, 'data')
+            web_dir (str): Output directory
+            database_file (str): SQLite database file path"""
+        ItchGame.database_file = database_file
         os.makedirs(os.path.join(web_dir, 'api'), exist_ok=True)
-        os.makedirs(ItchGame.games_dir, exist_ok=True)
 
         games = DiskManager.load_all_games()
         generate_web(games, web_dir)
 
-    def recheck_unknown_claimability(self, games_dir: str = 'web/data/'):
+    def recheck_unknown_claimability(self, database_file: str = 'web/data.db'):
         """Recheck games with unknown claimability"""
-
-        ItchGame.games_dir = games_dir
+        ItchGame.database_file = database_file
         games = DiskManager.load_all_games()
 
         for game in games:
-            if "claimable" not in game.__dict__ and game.active_sale:
+            if game.claimable is None and game.active_sale:
                 print(f'Rechecking claimability of {game.name} ({game.id})')
                 try:
+                    game.check_claimability()
                     print(f'Found claimable: {game.claimable} for {game.name} (ID {game.id})')
                 except ReadTimeout as e:
                     print(f'Timeout while checking claimability of {game.name} (ID {game.id}): {e}')
                     continue
-                game.save_to_disk()
+                game.save_to_database()
 
     def login(self,
                 username: str = None,

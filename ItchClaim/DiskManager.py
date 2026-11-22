@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 #
-# Copyright (c) 2022-2025 Péter Tombor.
+# Copyright (c) 2022-2026 Péter Tombor.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,15 +20,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from typing import List
+from typing import List, Optional
 import os
 import json
 from bs4 import BeautifulSoup
 from requests.exceptions import ConnectionError
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from .flaresolverr.flaresolverr import FlaresolverrException
 from .ItchGame import ItchGame
 from .ItchSale import ItchSale
 from .CfWrapper import CfWrapper
+from .database import get_db_session
 from . import __version__
 
 requests = CfWrapper()
@@ -37,7 +40,7 @@ def get_all_sales(
         start: int,
         max_pages: int = -1,
         no_fail: bool = False,
-        max_not_found_pages: int = 25
+        max_not_found_pages: int = 25,
     ) -> List[ItchGame]:
     """Download details about every sale posted on itch.io
 
@@ -89,7 +92,7 @@ def get_all_sales(
         except Exception as ex:
             print(f'Failed to parse sale page {page}. Reason: {ex}')
 
-        with open(os.path.join(ItchGame.games_dir, 'resume_index.txt'), 'w', encoding='utf-8') as f:
+        with open('web/resume_index.txt', 'w', encoding='utf-8') as f:
             f.write(str(page - page_not_found_num))
 
     if page >= start + max_pages:
@@ -101,10 +104,10 @@ def get_all_sales(
         print(f'Execution finished. Added a total of {games_num} games')
 
 def get_one_sale(page: int, force: bool = True) -> int:
-    """"Downloads one sale page, and saves the results to the disk
+    """"Downloads one sale page, and saves the results to the SQLite database
 
     Args:
-        page (int): the sale_id  to be downloaded
+        page (int): the sale_id to be downloaded
         force (bool): set to True if method is not called from refresh_sale_cache.
             Makes sure that the sales array in the game is sorted and doesn't contain duplicate elements.
 
@@ -135,15 +138,17 @@ def get_one_sale(page: int, force: bool = True) -> int:
         # If the sale is not active, we can't check if it's claimable
         if not current_sale.is_active:
             game.claimable = None
+        else:
+            game.check_claimability()
 
-        # load previously saved sales
-        if os.path.exists(game.get_default_game_filename()):
-            disk_game: ItchGame = ItchGame.load_from_disk(game.get_default_game_filename(), refresh_claimable=True)
-            game.sales = disk_game.sales
-            if game.sales[-1].id == page and not force:
+        # load previously saved sales from database
+        existing_game: Optional[ItchGame] = ItchGame.load_from_database(game.id, refresh_claimable=True)
+        if existing_game is not None:
+            game.sales = existing_game.sales
+            if game.sales and game.sales[-1].id == page and not force:
                 print(f'Sale {page} has been already saved for game {game.name} (wrong resume index?)')
                 continue
-        
+
         if not force:
             game.sales.append(current_sale)
         else:
@@ -159,14 +164,14 @@ def get_one_sale(page: int, force: bool = True) -> int:
                 game.sales.sort(key=lambda a: a.id)
 
         games_num += 1
-        game.save_to_disk()
+        game.save_to_database()
 
     if game.price == 0:
         expired_str = '(inactive)' if not current_sale.is_active else ''
         print(f'Sale page #{page}: added {len(games_raw)} games', expired_str)
     return games_num
 
-def get_all_sale_pages(category: str = 'games', no_fail: bool =False) -> List[ItchGame]:
+def get_all_sale_pages(category: str = 'games', no_fail: bool = False) -> List[ItchGame]:
     """Gets all the pages of the sales feed from itch.io, and saves the missing games
 
     Args:
@@ -201,8 +206,8 @@ def get_all_sale_pages(category: str = 'games', no_fail: bool =False) -> List[It
           f'Added a total of {games_num} {category}')
 
 def get_online_sale_page(page: int, category: str = 'games') -> int:
-    """Get a page of the sales feed from itch.io, and save the missing ones to the disk.
-    Supposed to be ran after get_all_sales() to catch updated sales.
+    """Get a page of the sales feed from itch.io, and save the missing ones to the database.
+    Supposed to be run after get_all_sales() to catch updated sales.
     
     Args:
         page (int): the id of the page to load
@@ -227,42 +232,46 @@ def get_online_sale_page(page: int, category: str = 'games') -> int:
     for div in games_raw:
         game = ItchGame.from_div(div, price_needed=True)
         if game.price == 0:
-            # Save game if it's new to us
-            if not os.path.exists(game.get_default_game_filename()):
-                # Call API to get active sale
-                ItchGame.from_api(game.url).save_to_disk()
-                print(f'Saved new {category} {game.name} ({game.url})')
-                games_added += 1
+            existing_game = ItchGame.load_from_database(game.id, refresh_claimable=True)
+            if existing_game is None:
+                new_game = ItchGame.from_api(game.url)
+                if new_game:
+                    new_game.save_to_database()
+                    print(f'Saved new {category} {game.name} ({game.url})')
+                    games_added += 1
                 continue
 
             # load previously saved sales
-            game = ItchGame.load_from_disk(game.get_default_game_filename(), refresh_claimable=True)
-            if game.active_sale:
+            if existing_game.active_sale:
                 print(f'Skipping {category} {game.name} ({game.url}): already active sale found on disk')
                 continue
 
             # Call API to get active sale
-            sale = ItchGame.from_api(game.url).active_sale
-            game.sales.append(sale)
-            game.sales.sort(key=lambda a: a.id)
-            game.save_to_disk()
-            print(f'Updated values for {category} {game.name} ({game.url})')
-            games_added += 1
+            api_game = ItchGame.from_api(game.url)
+            if api_game and api_game.active_sale:
+                sale = api_game.active_sale
+                existing_game.sales.append(sale)
+                existing_game.sales.sort(key=lambda a: a.id)
+                existing_game.save_to_database()
+                print(f'Updated values for {category} {game.name} ({game.url})')
+                games_added += 1
     if len(games) == 0 and json.loads(r.text)["num_items"] == 0:
         return -1
     return games_added
 
-def load_all_games():
-    """Load all games cached on the disk"""
-    l: List[ItchGame] = []
-    for file in os.listdir(ItchGame.games_dir):
-        if not file.endswith('.json'):
-            continue
-        path = os.path.join(ItchGame.games_dir, file)
-        if os.path.getsize(path) == 0:
-            continue
-        l.append(ItchGame.load_from_disk(path))
-    return l
+def load_all_games(database_file: Optional[str] = None) -> List[ItchGame]:
+    """Load all games cached in the SQLite database"""
+    if database_file is None:
+        database_file = ItchGame.database_file
+
+    if not os.path.exists(database_file):
+        return []
+
+    with get_db_session(database_file) as session:
+        stmt = select(ItchGame).options(selectinload(ItchGame.sales))
+        games = list(session.scalars(stmt).all())
+        session.expunge_all()
+        return games
 
 def download_from_remote_cache(url: str) -> List[ItchGame]:
     r = requests.get(url, timeout=32)

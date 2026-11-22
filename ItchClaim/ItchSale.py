@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 #
-# Copyright (c) 2022-2025 Péter Tombor.
+# Copyright (c) 2022-2026 Péter Tombor.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,23 +22,48 @@
 
 import json
 import re
-from typing import List
+import time
 from datetime import datetime
+from typing import List, Optional, TYPE_CHECKING
 from bs4 import BeautifulSoup
+from sqlalchemy import Integer
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from . import __version__
 from .CfWrapper import CfWrapper
+from .database import Base, game_sales
+
+if TYPE_CHECKING:
+    from .ItchGame import ItchGame
 
 
-class ItchSale:
-    def __init__(self, id: int, end: datetime = None, start: datetime = None) -> None:
-        self.id: int = id
-        self.end: datetime = end
-        self.start: datetime = start
-        self.err: str = None
+class ItchSale(Base):
+    __tablename__ = "sales"
 
-        if not start or not end:
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    start_date: Mapped[int] = mapped_column(Integer, nullable=False)
+    end_date: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    games: Mapped[List["ItchGame"]] = relationship(
+        "ItchGame",
+        secondary=game_sales,
+        back_populates="sales",
+    )
+
+    def __init__(
+        self,
+        id: int,
+        start_date: Optional[int] = None,
+        end_date: Optional[int] = None,
+        **kwargs,
+    ) -> None:
+        super().__init__(**kwargs)
+        self.id = id
+        self.err: Optional[str] = None
+        self.start_date = start_date
+        self.end_date = end_date
+
+        if self.start_date is None or self.end_date is None:
             self.get_data_online()
-
 
     def get_data_online(self):
         sale_url = f"https://itch.io/s/{self.id}"
@@ -63,41 +88,39 @@ class ItchSale:
 
         date_format = '%Y-%m-%dT%H:%M:%SZ'
         sale_data = json.loads(re.findall(r'init_Sale.+, (.+)\);i', r.text)[0])
-        self.start = datetime.strptime(sale_data['start_date'], date_format)
-        self.end = datetime.strptime(sale_data['end_date'], date_format)
+        self.start_date = int(datetime.strptime(sale_data['start_date'], date_format).timestamp())
+        self.end_date = int(datetime.strptime(sale_data['end_date'], date_format).timestamp())
 
         if self.id != sale_data['id']:
             raise ValueError(f'Sale ID mismatch in parsed <script> tag. Excepted {self.id}')
 
-
     def serialize(self):
         return {
             'id': self.id,
-            'start': int(self.start.timestamp()),
-            'end': int(self.end.timestamp()),
+            'start': self.start_date,
+            'end': self.end_date,
         }
-
 
     @classmethod
     def from_dict(cls, dict: dict):
         id = dict['id']
-        start = datetime.fromtimestamp(dict['start'])
-        end = datetime.fromtimestamp(dict['end'])
-        return ItchSale(id, start=start, end=end)
-
+        start_date = dict['start']
+        end_date = dict['end']
+        return cls(id, start_date=start_date, end_date=end_date)
 
     @staticmethod
     def serialize_list(list: List):
-        return [ sale.serialize() for sale in list ]
-
+        return [sale.serialize() for sale in list]
 
     @property
-    def is_active(self):
-        if datetime.now() < self.end and datetime.now() > self.start:
-            return True
+    def is_active(self) -> bool:
+        if self.start_date and self.end_date:
+            now = int(time.time())
+            return self.start_date < now < self.end_date
         return False
 
-
     @property
-    def is_upcoming(self):
-        return datetime.now() < self.start
+    def is_upcoming(self) -> bool:
+        if self.start_date:
+            return int(time.time()) < self.start_date
+        return False

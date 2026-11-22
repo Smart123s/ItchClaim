@@ -97,13 +97,13 @@ Generate a list of uploaded files and their download URLs for a game. These link
 
 #### Manually collect sales from itch.io
 ```bash
-itchclaim refresh_sale_cache --games_dir web/data/ --sales "[1,2,3]" --max_pages -1
+itchclaim refresh_sale_cache --database-file web/data.db --sales "[1,2,3]" --max_pages -1
 ```
-Request details about every single itch.io sale, and save the $0 ones to the disk.
+Request details about every single itch.io sale, and save the $0 ones to the SQLite database.
 The initial run can take 12+ hours.
 
 #### Parameters
-- **games_dir:** Output directory
+- **database-file:** SQLite database file path. Default is `'web/data.db'`
 - **sales:** (List[int]): Only refresh the sales specified in this list (Optional)
 - **max_pages:** (int): The maximum number of pages to download. Default is -1, which means unlimited (Optional)
 - **no_fail:** (bool): Continue downloading sales even if a page fails to load
@@ -111,23 +111,39 @@ The initial run can take 12+ hours.
 
 ### Recheck unknown claimability
 
-Rechecks all games in the specified directory whose claimability status is unknown. This can happen for example when a sale was initially saved as an "upcoming sale", a state in which claimability can not be checked.
-For each such game, it prints the game's name and ID, displays the found claimability status, and saves the updated game data back to disk.
+Rechecks all games in the database whose claimability status is unknown. This can happen for example when a sale was initially saved as an "upcoming sale", a state in which claimability can not be checked.
+For each such game, it prints the game's name and ID, displays the found claimability status, and saves the updated game data back to the database.
 
 #### Parameters
-- **games_dir:** (str, optional): The directory where game data is stored. Defaults to `'web/data/'`.
+- **database-file:** (str, optional): The SQLite database file path where game data is stored. Defaults to `'web/data.db'`.
 
 **Usage Example:**
+```bash
+itchclaim recheck_unknown_claimability --database-file web/data.db
+```
 
 ### Generate static website
 ```bash
-itchclaim generate_web --web_dir web/
+itchclaim generate_web --web_dir web/ --database-file web/data.db
 ```
-Generates a static HTML file containing a table of all the sales cached on the disk.
+Generates a static HTML file and JSON feeds containing sales cached in the SQLite database.
 This command was created for use on the CI, and is not recommended for general users.
 
 #### Parameters
-- **web_dir:** The output directory
+- **web_dir:** The output directory (Defaults to `'web/'`)
+- **database-file:** (str, optional): SQLite database file path (Defaults to `'web/data.db'`)
+
+### Migrate from split JSON to SQLite
+If you have an existing directory containing legacy per-game JSON files, you can migrate them into a single SQLite database using the standalone migration script:
+```bash
+python migrate_from_split_json_to_sqlite.py --legacy-dir web/data/ --database-file web/data.db
+```
+
+#### Parameters
+- **--legacy-dir:** Directory containing legacy JSON files (Defaults to `web/data/`)
+- **--database-file:** Destination SQLite database file (Defaults to `web/data.db`)
+
+> *Note:* The default path for `resume_index.txt` has changed from `web/data/resume_index.txt` to `web/resume_index.txt` (stored alongside the database file).
 
 ## FAQ
 

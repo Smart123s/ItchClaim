@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 #
-# Copyright (c) 2022-2025 Péter Tombor.
+# Copyright (c) 2022-2026 Péter Tombor.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,76 +20,163 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import json
+import os
+import re
 from datetime import datetime
-from typing import List, Optional
-from functools import cached_property
-import json, re, urllib, os
-from bs4.element import Tag
+from typing import List, Optional, Union
 from bs4 import BeautifulSoup
-from .ItchSale import ItchSale
+from bs4.element import Tag
+from sqlalchemy import Boolean, Float, Integer, String, select
+from sqlalchemy.orm import Mapped, Session, mapped_column, relationship, selectinload
 from . import __version__
 from .CfWrapper import CfWrapper
+from .database import Base, game_sales, get_db_session
+from .ItchSale import ItchSale
 
-class ItchGame:
+
+class ItchGame(Base):
+    __tablename__ = "games"
+
     games_dir: str = 'web/data/'
+    database_file: str = 'web/data.db'
 
-    def __init__(self, id: int):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    url: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    price: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    claimable: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
+    cover_image: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+
+    sales: Mapped[List[ItchSale]] = relationship(
+        "ItchSale",
+        secondary=game_sales,
+        back_populates="games",
+        order_by="ItchSale.id",
+    )
+
+    def __init__(
+        self,
+        id: int,
+        name: Optional[str] = None,
+        url: Optional[str] = None,
+        price: Optional[float] = None,
+        claimable: Optional[bool] = None,
+        cover_image: Optional[str] = None,
+        sales: Optional[List[ItchSale]] = None,
+        **kwargs,
+    ) -> None:
+        super().__init__(**kwargs)
         self.id = id
-        self.name: str = None
-        self.url: str = None
-        self.price: float = None
-        self.sales: List[ItchSale] = []
-        self.cover_image: str = None
-        self.s = CfWrapper()
+        self.name = name
+        self.url = url
+        self.price = price
+        self.cover_image = cover_image
+        self.sales = sales if sales is not None else []
+        self.claimable = claimable
+
+    @property
+    def s(self) -> CfWrapper:
+        if not hasattr(self, "_s") or self._s is None:
+            self._s = CfWrapper()
+        return self._s
+
+    @s.setter
+    def s(self, value: CfWrapper):
+        self._s = value
+
+    def check_claimability(self) -> Optional[bool]:
+        """Check online whether the game is claimable during its active sale"""
+        if not self.active_sale:
+            self.claimable = None
+            return None
+        r = self.s.get(self.url, timeout=32)
+        r.encoding = 'utf-8'
+        soup = BeautifulSoup(r.text, 'html.parser')
+        buy_row = soup.find('div', class_='buy_row')
+        if buy_row is None:
+            # Game is probably WebGL or HTML5 only
+            self.claimable = False
+            return False
+        buy_box = buy_row.find('a', class_='button buy_btn')
+        if buy_box is None:
+            # No buy button is visible, so it's probably not claimable
+            self.claimable = False
+            return False
+        if 'Buy Now' in buy_box.text:
+            self.claimable = None
+            return None
+        self.claimable = (buy_box.text == 'Download or claim')
+        return self.claimable
+
+    @property
+    def active_sale(self) -> Optional[ItchSale]:
+        active_sales = [a for a in self.sales if a.is_active]
+        if not active_sales:
+            return None
+        return min(active_sales, key=lambda a: a.end_date)
+
+    @property
+    def last_upcoming_sale(self) -> Optional[ItchSale]:
+        if not self.sales:
+            return None
+        last_sale = max(self.sales, key=lambda a: a.start_date)
+        if not last_sale.is_upcoming:
+            return None
+        return last_sale
+
+    @property
+    def is_first_sale(self) -> bool:
+        return len(self.sales) == 1
 
     @classmethod
     def from_div(cls, div: Tag, price_needed: bool = False):
         """Create an ItchGame Instance from a div that's found in tables on itch.io.
         These can usually be found on the sale or the my purchases page.
         
-        Args
+        Args:
             div (Tag): A bs4 div element, containing the data of a game
             price_needed (bool): wether to send another request to the API if the div has no
                 information about the price"""
         id = int(div.attrs['data-game_id'])
-        self = ItchGame(id)
+        game = cls(id)
         a = div.find('a', class_='title game_link')
-        self.name = a.text
-        self.url = a.attrs['href']
+        game.name = a.text
+        game.url = a.attrs['href']
 
         try:
-            self.cover_image = div.find('div', class_='game_thumb').find('img').attrs['data-lazy_src']
-        except:
-            self.cover_image = None
+            game.cover_image = div.find('div', class_='game_thumb').find('img').attrs['data-lazy_src']
+        except Exception:
+            game.cover_image = None
 
         price_element = div.find('div', attrs={'class': 'price_value'})
         # Some elements don't have a price defined
-        if price_element != None:
+        if price_element is not None:
             price_str = re.findall(r"[-+]?(?:\d*\.\d+|\d+)", price_element.text)[0]
-            self.price = float(price_str)
+            game.price = float(price_str)
         elif price_needed:
             # some obscure games have no price (they are always free) and are also
             # discounted by 100% and are claimable, for example:
             # https://web.archive.org/web/20230308004149/https://itch.io/s/88108/100-discount
-            api_data = ItchGame.from_api(self.url)
+            api_data = cls.from_api(game.url)
 
             # only 100% sales are collected by the from_api() method
             # this filters free games in bundles, for example:
             # https://web.archive.org/web/20230328044337/https://itch.io/s/92359/easter-sale
             # https://web.archive.org/web/20230328044523/https://ninjadalua.itch.io/dvirus/data.json
             if api_data is not None and len(api_data.sales) != 0:
-                self.price = api_data.price
-        return self
+                game.price = api_data.price
+        return game
 
-    def save_to_disk(self):
-        """Save the details of game to the disk"""
+    def save_to_disk_json(self):
+        """Save the details of game to the disk in JSON format"""
         os.makedirs(ItchGame.games_dir, exist_ok=True)
         with open(self.get_default_game_filename(), 'w', encoding='utf-8') as f:
             f.write(json.dumps(self.serialize()))
 
     @classmethod
-    def load_from_disk(cls, path: str, refresh_claimable: bool = False):
-        """Load cached details about game from the disk
+    def load_from_disk_json(cls, path: str, refresh_claimable: bool = False):
+        """Load cached details about game from the disk (legacy JSON format)
         
         Args:
             path (str): The location of the JSON file that contains the data about the game
@@ -99,16 +186,58 @@ class ItchGame:
         with open(path, 'r', encoding='utf-8') as f:
             data = json.loads(f.read())
         id = data['id']
-        self = ItchGame(id)
-        self.name = data['name']
-        self.url = data['url']
-        self.price = data['price']
-        self.sales = [ ItchSale.from_dict(sale) for sale in data['sales'] ]
+        game = cls(id)
+        game.name = data['name']
+        game.url = data['url']
+        game.price = data['price']
+        game.sales = [ItchSale.from_dict(sale) for sale in data['sales']]
         if data['claimable'] is not None and not refresh_claimable:
-            self.claimable = data['claimable']
-        self.cover_image = data['cover_image']
-        self.s = CfWrapper()
-        return self
+            game.claimable = data['claimable']
+        game.cover_image = data['cover_image']
+        return game
+
+    def save_to_database(self, database_file: Optional[str] = None, session: Optional[Session] = None):
+        """Save the details of game and its sales to the SQLite database"""
+        if database_file is None:
+            database_file = self.database_file
+
+        if session is not None:
+            session.merge(self)
+            session.flush()
+        else:
+            with get_db_session(database_file) as s:
+                s.merge(self)
+
+    @classmethod
+    def load_from_database(
+        cls,
+        id: int,
+        database_file: Optional[str] = None,
+        session: Optional[Session] = None,
+        refresh_claimable: bool = False,
+    ) -> Optional['ItchGame']:
+        """Load cached details about game from SQLite database"""
+        if database_file is None:
+            database_file = cls.database_file
+        def _load(s: Session) -> Optional['ItchGame']:
+            stmt = select(cls).where(cls.id == id).options(selectinload(cls.sales))
+            game = s.scalars(stmt).first()
+            if game is None:
+                return None
+            if refresh_claimable:
+                game.claimable = None
+            return game
+
+        if session is not None:
+            return _load(session)
+        else:
+            with get_db_session(database_file) as s:
+                game = _load(s)
+                if game is not None:
+                    s.expunge(game)
+                    for sale in game.sales:
+                        s.expunge(sale)
+                return game
 
     @classmethod
     def from_api(cls, url: str):
@@ -133,15 +262,15 @@ class ItchGame:
         if 'errors' in resp:
             if resp['errors'][0] in ('invalid game', 'invalid user'):
                 # Check if the game's URL has been changed
-                mock_game = ItchGame(-1)
+                mock_game = cls(-1)
                 mock_game.url = url
                 if mock_game.check_redirect_url():
-                    return ItchGame.from_api(mock_game.url)
+                    return cls.from_api(mock_game.url)
             print(f'Failed to get game {url} from API: {resp["errors"][0]}')
             return None
 
         game_id = resp['id']
-        game = ItchGame(game_id)
+        game = cls(game_id)
 
         game.url = url
         game.s = s
@@ -173,44 +302,6 @@ class ItchGame:
         sessionfilename = f'{self.id}.json'
         return os.path.join(ItchGame.games_dir, sessionfilename)
 
-    @cached_property
-    def claimable(self) -> Optional[bool]:
-        if not self.active_sale:
-            return None
-        r = self.s.get(self.url, timeout=32)
-        r.encoding = 'utf-8'
-        soup = BeautifulSoup(r.text, 'html.parser')
-        buy_row = soup.find('div', class_='buy_row')
-        if buy_row is None:
-            # Game is probably WebGL or HTML5 only
-            return False
-        buy_box = buy_row.find('a', class_='button buy_btn')
-        if buy_box is None:
-            # No buy button is visible, so it's probably not claimable
-            return False
-        if 'Buy Now' in buy_box.text:
-            return None
-        claimable = buy_box.text == 'Download or claim'
-        return claimable
-
-    @cached_property
-    def active_sale(self) -> ItchSale:
-        active_sales = list(filter(lambda a: a.is_active, self.sales))
-        if len(active_sales) == 0:
-            return None
-        return min(active_sales, key=lambda a: a.end)
-
-    @property
-    def last_upcoming_sale(self) -> ItchSale:
-        last_sale = max(self.sales, key=lambda a: a.start)
-        if not last_sale.is_upcoming:
-            return None
-        return last_sale
-
-    @property
-    def is_first_sale(self) -> bool:
-        return len(self.sales) == 1
-
     def downloadable_files(self) -> List:
         """Get details about a game, including it's CDN URls"""
 
@@ -228,7 +319,7 @@ class ItchGame:
         uploads_div = soup.find_all('div', class_='upload')
         uploads = []
         for upload_div in uploads_div:
-            uploads.append(self.parse_download_div(upload_div, s))
+            uploads.append(self.parse_download_div(upload_div))
         return uploads
 
     def parse_download_div(self, div: Tag):
@@ -304,7 +395,6 @@ class ItchGame:
         if not resp_redirect.is_redirect:
             return False
         self.url = resp_redirect.next.url
-        if 'claimable' in self.__dict__.keys():
-            del self.__dict__['claimable']
+        self.claimable = None
         print(f"WARN: URL of game {self.name} has changed to {self.url}")
         return True

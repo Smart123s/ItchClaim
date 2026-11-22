@@ -52,21 +52,23 @@ jobs:
       - name: Persist previously collected sales
         uses: actions/cache@v4
         env:
-          cache-name: sale-data-v1.1
+          cache-name: sale-data-v2.0
         with:
-          path: web/data/
+          path: |
+            web/data.db
+            web/resume_index.txt
           key: ${{ env.cache-name }}-${{ steps.date.outputs.date }}
           restore-keys: |
             ${{ env.cache-name }}
       - name: Change resume_index to user's input value
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.restart_from_sale_id != ''
-        run: echo ${{ github.event.inputs.restart_from_sale_id }} > web/data/resume_index.txt
+        run: echo ${{ github.event.inputs.restart_from_sale_id }} > web/resume_index.txt
       - name: Refresh sales from itch.io
-        run: python itchclaim.py refresh_sale_cache --games_dir web/data/ --sales "[${{ github.event.inputs.sales }}]" --max_pages 5000
+        run: python itchclaim.py refresh_sale_cache --database-file web/data.db --sales "[${{ github.event.inputs.sales }}]" --max_pages 5000
       - name: Recheck games with unknown claimability
-        run: python itchclaim.py recheck_unknown_claimability --games_dir web/data/
+        run: python itchclaim.py recheck_unknown_claimability --database-file web/data.db
       - name: Generate index.html and JSON data
-        run: python itchclaim.py generate_web --web_dir web/
+        run: python itchclaim.py generate_web --web_dir web/ --database-file web/data.db
       - name: Upload Page
         uses: actions/upload-pages-artifact@v3
         with:

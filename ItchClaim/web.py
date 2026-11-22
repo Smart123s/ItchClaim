@@ -36,21 +36,15 @@ ROW_TEMPLATE = Template("""<tr>
         <td style="text-align:center" title="First sale">$first_sale</td>
         <td style="text-align:center" title="$claimable_text">$claimable_icon</td>
         <td><a href="$url" title="URL">&#x1F310;</a></td>
-        <td><a href="./data/$id.json" title="JSON data">&#x1F4DC;</a></td>
     </tr>""")
 
 def generate_web(games: List[ItchGame], web_dir: str):
     template = Template(pkg_resources.read_text(__package__, 'index.template.html'))
     games.sort(key=lambda a: (-1*a.sales[-1].id, a.name))
 
-    # Forcibly set claimable to None if not set yet to prevent cached_property from calling remote API
-    for game in games:
-        if "claimable" not in game.__dict__:
-            game.claimable = None
-
     # Load resume index
     try:
-        with open(os.path.join(web_dir, 'data', 'resume_index.txt'), 'r', encoding='utf-8') as f:
+        with open(os.path.join(web_dir, 'resume_index.txt'), 'r', encoding='utf-8') as f:
             resume_index = int(f.read())
     except FileNotFoundError:
         resume_index = 0
@@ -102,13 +96,13 @@ def generate_rows(games: List[ItchGame], type: str) -> List[str]:
             claimable_icon = '&#x1F551;'
 
         if type == 'active':
-            sale_date = game.active_sale.end
+            sale_date = game.active_sale.end_date
         elif type == 'upcoming':
-            sale_date = game.last_upcoming_sale.start
+            sale_date = game.last_upcoming_sale.start_date
 
         rows.append(ROW_TEMPLATE.substitute(
             name = game.name,
-            sale_date = sale_date.strftime(DATE_FORMAT),
+            sale_date = datetime.fromtimestamp(sale_date).strftime(DATE_FORMAT),
             first_sale = '&#x1F947;' if game.is_first_sale else '',
             claimable_text = claimable_text,
             claimable_icon = claimable_icon,
